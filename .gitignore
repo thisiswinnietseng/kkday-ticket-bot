@@ -1,0 +1,22 @@
+# 環境設定（含密碼，絕對不上傳）
+.env
+
+# Python 虛擬環境
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# 執行紀錄與使用者資料
+*.log
+history.json
+
+# 除錯用截圖與暫存
+*.png
+debug.html
+
+# Excel 產出（可重新執行 make_flow_excel.py 產生）
+工單自動化流程對比.xlsx
+
+# macOS 系統檔
+.DS_Store

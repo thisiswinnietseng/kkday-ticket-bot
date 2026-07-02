@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-mode="wantan">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KKday 工單自動化</title>
+<style>
+:root {
+  --success: #22C55E;
+  --error: #EF4444;
+  --radius: 10px;
+  --radius-sm: 7px;
+  --surface: #FFFFFF;
+}
+html[data-mode="wantan"] {
+  --green: #B45309;
+  --green-dark: #92400E;
+  --green-light: #FEF3C7;
+  --amber: #F59E0B;
+  --amber-light: #FEF9EC;
+  --indigo: #D97706;
+  --indigo-light: #FEF3C7;
+  --bg: #FFFBF0;
+  --surface2: #FFF8EE;
+  --border: #EDE8DC;
+  --border2: #D9CEBC;
+  --text: #1C1308;
+  --text2: #5C4A2A;
+  --text3: #9C8A6A;
+  --header: #1C1308;
+  --header-border: #2A1E0C;
+  --shadow: 0 1px 3px rgba(28,19,8,.08), 0 4px 12px rgba(28,19,8,.05);
+}
+html[data-mode="notify"] {
+  --green: #BE123C;
+  --green-dark: #9F1239;
+  --green-light: #FFE4E6;
+  --amber: #FB7185;
+  --amber-light: #FFF1F2;
+  --indigo: #E11D48;
+  --indigo-light: #FFE4E6;
+  --bg: #FFF5F5;
+  --surface2: #FFF0F0;
+  --border: #F0DEDE;
+  --border2: #E0C8C8;
+  --text: #2D1B1B;
+  --text2: #7A4A4A;
+  --text3: #B08888;
+  --header: #2D1B1B;
+  --header-border: #3D2424;
+  --shadow: 0 1px 3px rgba(45,27,27,.08), 0 4px 12px rgba(45,27,27,.05);
+}
+html[data-mode="general"] {
+  --green: #7A9E7E;
+  --green-dark: #5C7A60;
+  --green-light: #E4EDE5;
+  --amber: #8FAB8F;
+  --amber-light: #EEF4EE;
+  --indigo: #7A9E7E;
+  --indigo-light: #E4EDE5;
+  --bg: #F3F5F1;
+  --surface2: #EBF0E9;
+  --border: #CDDACA;
+  --border2: #B8C9B5;
+  --text: #2C3B2D;
+  --text2: #4A6050;
+  --text3: #8AA090;
+  --header: #2C3B2D;
+  --header-border: #3A4D3C;
+  --shadow: 0 1px 3px rgba(44,59,45,.08), 0 4px 12px rgba(44,59,45,.05);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+
+/* ── Header ── */
+.topbar { background: var(--header); border-bottom: 1px solid var(--header-border); height: 52px; display: flex; align-items: center; padding: 0 24px; gap: 12px; position: sticky; top: 0; z-index: 100; }
+.topbar-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; position: absolute; left: 50%; transform: translateX(-50%); }
+.topbar-logomark { width: 44px; height: 28px; background: var(--green); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; letter-spacing: -0.3px; flex-shrink: 0; }
+.topbar-title { font-size: 14px; font-weight: 600; color: #fff; letter-spacing: 0.01em; }
+.topbar-spacer { flex: 1; }
+.topbar-queue { display: none; align-items: center; background: rgba(245,158,11,.15); border: 1px solid rgba(245,158,11,.3); border-radius: 100px; padding: 4px 12px; font-size: 12px; color: var(--amber); gap: 6px; }
+.topbar-status { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 100px; padding: 4px 12px; font-size: 12px; color: rgba(255,255,255,.6); }
+.topbar-stop { display: none; align-items: center; gap: 6px; background: transparent; border: 1.5px solid #EF4444; color: #EF4444; border-radius: 100px; padding: 4px 14px; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background .15s; }
+.topbar-stop:hover { background: rgba(239,68,68,.12); }
+.topbar-help { display: flex; align-items: center; gap: 5px; background: transparent; border: 1px solid rgba(255,255,255,.22); color: rgba(255,255,255,.7); border-radius: 100px; padding: 4px 12px; font-size: 12px; font-family: inherit; cursor: pointer; transition: background .15s, color .15s; }
+.topbar-help:hover { background: rgba(255,255,255,.1); color: #fff; }
+
+/* ── 說明書 Modal ── */
+.help-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.48); z-index: 9000; align-items: flex-start; justify-content: center; padding: 32px 16px 32px; overflow-y: auto; }
+.help-overlay.open { display: flex; }
+.help-modal { background: #fff; border-radius: 16px; width: 100%; max-width: 720px; margin: auto; box-shadow: 0 24px 64px rgba(0,0,0,.22); overflow: hidden; }
+.help-modal-head { background: #1C1308; color: #fff; padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; }
+.help-modal-head h2 { font-size: 17px; font-weight: 700; letter-spacing: .02em; }
+.help-modal-head p { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 2px; }
+.help-close { background: rgba(255,255,255,.12); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
+.help-close:hover { background: rgba(255,255,255,.25); }
+.help-body { padding: 24px 28px 32px; display: flex; flex-direction: column; gap: 28px; }
+.help-section { display: flex; flex-direction: column; gap: 10px; }
+.help-section-title { font-size: 13px; font-weight: 700; color: #92400E; letter-spacing: .06em; text-transform: uppercase; display: flex; align-items: center; gap: 7px; padding-bottom: 8px; border-bottom: 1.5px solid #F5F0E8; }
+.help-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 14px; background: #FAFAF8; border-radius: 8px; border: 1px solid #EEEBE3; }
+.help-row-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.help-row-content { flex: 1; }
+.help-row-title { font-size: 13px; font-weight: 600; color: #1C1308; margin-bottom: 2px; }
+.help-row-desc { font-size: 12px; color: #6B5B3A; line-height: 1.7; }
+.help-row-desc b { color: #1C1308; }
+.help-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 100px; margin-left: 6px; vertical-align: middle; }
+.help-tag-w { background: #FEF3C7; color: #92400E; }
+.help-tag-n { background: #FFE4E6; color: #9F1239; }
+.help-tag-g { background: #E4EDE5; color: #5C7A60; }
+.help-tag-b { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 100px; background: #EDE9FE; color: #5B21B6; margin-left: 6px; vertical-align: middle; }
+.help-chip { display: inline-flex; align-items: center; gap: 4px; background: #1C1308; color: #fff; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 100px; vertical-align: middle; }
+.help-chip-red { background: transparent; border: 1.5px solid #EF4444; color: #EF4444; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 100px; vertical-align: middle; }
+.help-tip { background: #FEF9EC; border: 1px solid #F5E6A0; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #6B5220; line-height: 1.7; }
+.help-tip b { color: #92400E; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 2px rgba(34,197,94,.2); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+
+/* ── Mode tabs ── */
+.mode-tabs { background: var(--header); border-bottom: 1px solid var(--header-border); display: flex; padding: 0 24px; gap: 2px; }
+.mode-tab { padding: 10px 18px 9px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.4); background: none; border: none; cursor: pointer; position: relative; letter-spacing: 0.02em; transition: color .15s; }
+.mode-tab::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; border-radius: 2px 2px 0 0; opacity: 0; transition: opacity .15s; }
+.mode-tab.active { color: var(--amber); }
+.mode-tab.active::after { background: var(--amber); opacity: 1; }
+.mode-tab:not(.active):hover { color: rgba(255,255,255,.7); }
+
+/* ── Layout ── */
+.main { display: grid; grid-template-columns: 380px 1fr; gap: 20px; max-width: 1280px; margin: 0 auto; padding: 20px 24px; align-items: start; }
+.section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+
+/* ── Cards ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+.card-body { padding: 18px 20px; }
+.card-section-title { font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.card-section-title::before { content: ''; display: block; width: 3px; height: 13px; border-radius: 2px; background: var(--green); flex-shrink: 0; }
+
+/* ── Form ── */
+label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+.field-wrap { margin-bottom: 12px; }
+.field-wrap:last-child { margin-bottom: 0; }
+input[type=email], input[type=password], input[type=text] { width: 100%; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; font-family: inherit; color: var(--text); background: var(--surface2); outline: none; transition: border-color .15s, box-shadow .15s; }
+input[type=email]:focus, input[type=password]:focus, input[type=text]:focus { border-color: var(--green); background: #fff; box-shadow: 0 0 0 3px rgba(0,165,80,.1); }
+textarea { width: 100%; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 8px 12px; font-family: 'Menlo', 'Consolas', 'SF Mono', monospace; font-size: 12px; color: var(--text); background: var(--surface2); resize: vertical; outline: none; transition: border-color .15s, box-shadow .15s; line-height: 1.6; min-height: 80px; }
+textarea:focus { border-color: var(--green); background: #fff; box-shadow: 0 0 0 3px rgba(0,165,80,.1); }
+textarea::placeholder { color: var(--text3); }
+.field-hint { font-size: 11px; color: var(--text3); margin-top: 4px; line-height: 1.5; }
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 48px; }
+.pw-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text3); font-size: 12px; font-family: inherit; font-weight: 500; padding: 2px 4px; }
+.pw-toggle:hover { color: var(--text2); }
+.remember-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: var(--text2); font-weight: 400; margin: 0; }
+
+/* ── Order + supplier side by side ── */
+.order-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+.order-pair .field-wrap { margin-bottom: 0; }
+.order-pair textarea { min-height: 64px; }
+.order-pair-hint { font-size: 11px; font-weight: 600; color: var(--green); margin-bottom: 12px; padding: 6px 10px; background: var(--green-light); border-radius: var(--radius-sm); display: flex; align-items: center; gap: 6px; }
+
+/* ── Type toggle ── */
+.type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.type-opt { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: border-color .15s, background .15s; background: var(--surface2); }
+.type-opt.sel-page { border-color: var(--amber); background: var(--amber-light); }
+.type-opt.sel-op { border-color: var(--indigo); background: var(--indigo-light); }
+.type-opt input[type=radio] { display: none; }
+.type-radio { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: border-color .15s, background .15s; }
+.type-opt.sel-page .type-radio { border-color: var(--amber); background: var(--amber); }
+.type-opt.sel-op .type-radio { border-color: var(--indigo); background: var(--indigo); }
+.type-radio-dot { width: 5px; height: 5px; border-radius: 50%; background: white; display: none; }
+.type-opt.sel-page .type-radio-dot, .type-opt.sel-op .type-radio-dot { display: block; }
+.type-label { font-size: 12px; font-weight: 500; color: var(--text2); }
+
+/* ── Run button ── */
+.btn-run { width: 100%; height: 44px; background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%); color: #fff; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity .15s, transform .1s; margin-top: 14px; letter-spacing: 0.02em; }
+.btn-run:hover:not(:disabled) { opacity: .92; transform: translateY(-1px); }
+.btn-run:active { transform: translateY(0); }
+.btn-run:disabled { background: var(--border2); color: var(--text3); cursor: not-allowed; transform: none; }
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
+.btn-run.running .spinner { display: block; }
+.btn-run.running .btn-label { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Batch upload ── */
+.batch-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0 14px; }
+.batch-divider::before, .batch-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.batch-divider-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); white-space: nowrap; }
+.batch-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.btn-sm { height: 32px; padding: 0 12px; border-radius: var(--radius-sm); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: opacity .15s, transform .1s; white-space: nowrap; }
+.btn-sm:hover { opacity: .85; transform: translateY(-1px); }
+.btn-sm-outline { border: 1.5px solid var(--green); color: var(--green); background: transparent; }
+.btn-sm-file { border: 1.5px solid var(--border2); color: var(--text2); background: var(--surface2); }
+.batch-file-info { font-size: 12px; color: var(--text3); }
+.batch-preview { margin-bottom: 10px; padding: 7px 11px; background: var(--green-light); border-radius: var(--radius-sm); font-size: 12px; color: var(--green-dark); display: none; }
+
+/* ── Results header row ── */
+.results-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.results-header-row .section-label { margin-bottom: 0; }
+.btn-export { height: 28px; padding: 0 12px; border: 1.5px solid var(--green); color: var(--green); background: transparent; border-radius: var(--radius-sm); font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; transition: background .15s; }
+.btn-export:hover { background: var(--green-light); }
+.log-toggle { width: 100%; border: none; border-top: 1px solid var(--border); background: none; padding: 7px 0; font-size: 11px; font-weight: 600; color: var(--text3); cursor: pointer; text-align: center; font-family: inherit; letter-spacing: 0.04em; display: block; }
+.log-toggle:hover { color: var(--text2); background: var(--surface2); }
+.btn-stop { width: 100%; height: 36px; margin-top: 8px; background: transparent; border: 1.5px solid #EF4444; color: #EF4444; border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.btn-stop:hover { background: #FEF2F2; }
+
+/* ── Steps strip ── */
+.steps-outer { max-width: 1280px; margin: 0 auto; padding: 0 24px 20px; }
+.steps-strip { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 0; }
+.step-node { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 72px; flex-shrink: 0; }
+.step-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.steps-wantan .step-num { background: var(--amber-light); color: var(--amber); border: 1.5px solid var(--amber); }
+.steps-notify .step-num { background: var(--indigo-light); color: var(--indigo); border: 1.5px solid var(--indigo); }
+.steps-general .step-num { background: var(--amber-light); color: var(--amber); border: 1.5px solid var(--amber); }
+
+/* ── Category picker ── */
+.cat-picker { position: relative; }
+.cat-trigger { width: 100%; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; font-family: inherit; color: var(--text); background: var(--surface2); cursor: pointer; text-align: left; outline: none; transition: border-color .15s, box-shadow .15s; }
+.cat-trigger:focus, .cat-trigger.open { border-color: var(--green); background: #fff; box-shadow: 0 0 0 3px rgba(29,78,216,.1); }
+.cat-trigger-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-trigger-text.placeholder { color: var(--text3); }
+.cat-trigger-arrow { font-size: 10px; color: var(--text3); margin-left: 8px; flex-shrink: 0; transition: transform .15s; }
+.cat-trigger.open .cat-trigger-arrow { transform: rotate(180deg); }
+.cat-dropdown { position: fixed; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 28px rgba(15,23,42,.14); z-index: 300; overflow: hidden; min-width: 340px; }
+.cat-search { padding: 8px 10px 6px; border-bottom: 1px solid var(--border); }
+.cat-search input { width: 100%; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 12px; font-family: inherit; color: var(--text); background: var(--surface2); outline: none; }
+.cat-search input:focus { border-color: var(--green); background: #fff; }
+.cat-list { max-height: calc(100vh - 340px); min-height: 200px; overflow-y: auto; padding: 4px 0 12px 0; }
+.cat-item { padding: 7px 14px; font-size: 12.5px; color: var(--text2); cursor: pointer; transition: background .08s, color .08s; line-height: 1.5; word-break: break-word; }
+.cat-item:hover { background: var(--amber-light); color: var(--amber); }
+.cat-item.active { background: var(--green-light); color: var(--green); font-weight: 600; }
+.cat-item .sep { color: var(--text3); margin: 0 4px; font-size: 11px; }
+.cat-empty { padding: 14px; text-align: center; font-size: 12px; color: var(--text3); }
+.step-text { font-size: 10px; color: var(--text2); text-align: center; line-height: 1.3; }
+.step-arrow { color: var(--border2); font-size: 11px; padding-bottom: 17px; flex-shrink: 0; margin: 0 2px; }
+
+/* ── Results ── */
+.result-empty { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 48px 24px; text-align: center; color: var(--text3); font-size: 13px; line-height: 1.7; }
+.result-empty .icon { font-size: 28px; margin-bottom: 10px; opacity: .35; }
+.result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; box-shadow: var(--shadow); animation: fadeUp .25s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.result-header { padding: 11px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+.result-header.success { background: #F0FDF4; border-bottom-color: #BBF7D0; }
+.result-header.error { background: #FFF1F2; border-bottom-color: #FECDD3; }
+.result-header.running { background: #FFFBEB; border-bottom-color: #FDE68A; }
+.result-header-icon { font-size: 15px; flex-shrink: 0; }
+.result-header-title { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.result-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.04em; }
+.result-tag.urgent { background: var(--amber-light); color: #92400E; }
+.result-tag.normal { background: #DBEAFE; color: #1E40AF; }
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+.summary-cell { background: var(--surface2); padding: 10px 14px; }
+.summary-cell-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.summary-cell-value { font-size: 12px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.progress-log { padding: 12px 16px; max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.log-line { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.5; }
+.log-icon { flex-shrink: 0; width: 16px; text-align: center; margin-top: 1px; font-size: 11px; }
+.log-msg { color: var(--text2); flex: 1; }
+.log-line.ok .log-msg { color: #15803D; }
+.log-line.error .log-msg { color: var(--error); }
+
+/* ── Stats ── */
+.stats-wrap { max-width: 1280px; margin: 0 auto 20px; padding: 0 24px; }
+.stats-group-label { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; margin-top: 16px; }
+.stats-group-label:first-child { margin-top: 0; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; text-align: center; }
+.stat-num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); line-height: 1; }
+.stat-num.green { color: var(--green); }
+.stat-num.red { color: var(--error); }
+.stat-label { font-size: 10px; color: var(--text3); margin-top: 4px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.week-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.week-btn { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-sm); width: 28px; height: 28px; cursor: pointer; font-size: 14px; color: var(--text2); display: flex; align-items: center; justify-content: center; }
+.week-btn:hover:not(:disabled) { background: var(--surface2); }
+.week-btn:disabled { opacity: .35; cursor: not-allowed; }
+#week-label { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+.daily-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 10px; }
+.daily-cell { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 6px; text-align: center; }
+.daily-cell.today { border-color: var(--green); background: var(--green-light); }
+.daily-day { font-size: 10px; color: var(--text3); font-weight: 600; margin-bottom: 2px; }
+.daily-count { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+.daily-sub { font-size: 9px; color: var(--text3); margin-top: 1px; }
+
+/* ── History ── */
+.history-wrap { max-width: 1280px; margin: 0 auto 32px; padding: 0 24px; }
+.history-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.history-header .section-label { margin-bottom: 0; flex: 1; }
+.btn-history-toggle { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 4px 12px; font-size: 11px; font-weight: 600; color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background .15s; font-family: inherit; }
+.btn-history-toggle:hover { background: var(--surface2); }
+.btn-export { background: var(--green); border: none; border-radius: var(--radius-sm); padding: 4px 12px; font-size: 11px; font-weight: 600; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: opacity .15s; font-family: inherit; }
+.btn-export:hover { opacity: .85; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.history-table th { text-align: left; padding: 8px 12px; color: var(--text3); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); background: var(--surface2); }
+.history-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+.history-table tr:last-child td { border-bottom: none; }
+.history-table tr:hover td { background: var(--surface2); }
+.badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.03em; }
+.badge.ok { background: var(--green-light); color: var(--green-dark); }
+.badge.fail { background: #FEF2F2; color: #DC2626; }
+.badge.urgent { background: var(--amber-light); color: #92400E; }
+.badge.normal { background: #DBEAFE; color: #1E40AF; }
+.mono { font-variant-numeric: tabular-nums; font-family: 'Menlo','Consolas','SF Mono',monospace; font-size: 11px; }
+
+@media(max-width:800px) { .main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="topbar-logomark">KKday</div>
+    <span class="topbar-title">工單自動化</span>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-queue" id="queue-status"><span id="queue-text"></span></div>
+  <button class="topbar-stop" id="stop-btn-global" onclick="stopRun()">⏹ 停止</button>
+  <button class="topbar-help" onclick="openHelp()">？ 使用說明</button>
+  <div class="topbar-status"><div class="status-dot"></div><span id="srv">連線中...</span></div>
+</div>
+
+<div class="mode-tabs">
+  <div class="mode-tab active wantan" id="tab-wantan" onclick="switchMode('wantan')">額滿挽單</div>
+  <div class="mode-tab general" id="tab-general" onclick="switchMode('general')">一般工單</div>
+  <div class="mode-tab notify" id="tab-notify" onclick="switchMode('notify')">對客通知</div>
+</div>
+
+<div class="main">
+  <div class="left">
+
+    <!-- 帳號設定 -->
+    <div class="section-label">帳號設定</div>
+    <div class="card"><div class="card-body">
+      <div class="field-wrap">
+        <label>BE2 帳號</label>
+        <input type="email" id="be2-user" placeholder="your@kkday.com" autocomplete="username">
+      </div>
+      <div class="field-wrap">
+        <label>BE2 密碼</label>
+        <div class="pw-wrap">
+          <input type="password" id="be2-pass" placeholder="••••••••" autocomplete="current-password">
+          <button type="button" id="pw-toggle" class="pw-toggle" onclick="togglePw()">顯示</button>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label>你的名字（顯示在紀錄上）</label>
+        <input type="text" id="be2-name" placeholder="例：Winnie" autocomplete="name">
+      </div>
+      <label class="remember-label">
+        <input type="checkbox" id="remember-me" onchange="toggleRemember()">
+        記住帳號與名字（僅存在此瀏覽器）
+      </label>
+    </div></div>
+
+    <!-- 挽單表單 -->
+    <div id="form-wantan">
+      <div class="section-label">訂單資訊</div>
+      <div class="card"><div class="card-body">
+        <div class="order-pair">
+          <div class="field-wrap">
+            <label>KKday 訂單編號</label>
+            <textarea id="order-ids" placeholder="26KK291040054&#10;26KK291040055"></textarea>
+          </div>
+          <div class="field-wrap">
+            <label>供應商編號</label>
+            <textarea id="supplier-ids" placeholder="每行對應一筆供應商編號"></textarea>
+          </div>
+        </div>
+        <div class="order-pair-hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
+        <div class="field-wrap">
+          <label>可改類型</label>
+          <div class="type-toggle">
+            <label class="type-opt sel-page" id="opt-page" onclick="selectType('page')">
+              <input type="radio" name="follow-type" value="page" checked onchange="toggleOpDates()">
+              <div class="type-radio"><div class="type-radio-dot"></div></div>
+              <span class="type-label">依商品頁面</span>
+            </label>
+            <label class="type-opt" id="opt-op" onclick="selectType('op')">
+              <input type="radio" name="follow-type" value="op" onchange="toggleOpDates()">
+              <div class="type-radio"><div class="type-radio-dot"></div></div>
+              <span class="type-label">依 OP 提供</span>
+            </label>
+          </div>
+        </div>
+        <div id="op-dates-wrap" style="display:none">
+          <div class="field-wrap" style="margin-top:8px">
+            <label>OP 可改場次</label>
+            <textarea id="op-dates" placeholder="2026/06/10 10:00&#10;2026/06/11 10:00" style="min-height:72px"></textarea>
+          </div>
+        </div>
+        <button class="btn-run" id="run-btn" onclick="runFlow()">
+          <div class="spinner"></div>
+          <span class="btn-label">▶ 開始自動建立工單</span>
+        </button>
+      </div></div>
+    </div>
+
+    <!-- 行前通知表單 -->
+    <div id="form-notify" style="display:none">
+      <div class="section-label">訂單資訊</div>
+      <div class="card"><div class="card-body">
+        <div class="order-pair">
+          <div class="field-wrap">
+            <label>KKday 訂單編號</label>
+            <textarea id="notify-order-ids" placeholder="26KK291040054&#10;26KK291040055"></textarea>
+          </div>
+          <div class="field-wrap">
+            <label>供應商編號</label>
+            <textarea id="notify-supplier-ids" placeholder="每行對應一筆供應商編號"></textarea>
+          </div>
+        </div>
+        <div class="order-pair-hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
+        <div class="field-wrap">
+          <label>對客通知內容 <span style="font-weight:400;color:var(--text3)">（請輸入中英版本 or 英文）</span></label>
+          <textarea id="notify-content" placeholder="填入要通知的內容，例如：&#10;請注意集合時間為 09:00，集合地點：XXX&#10;Please note the meeting time is 09:00 at XXX" style="min-height:100px"></textarea>
+        </div>
+        <button class="btn-run" id="notify-btn" onclick="runNotification()">
+          <div class="spinner"></div>
+          <span class="btn-label">▶ 開始對客通知</span>
+        </button>
+      </div></div>
+
+      <!-- 批次上傳 -->
+      <div class="batch-divider"><span class="batch-divider-label">批次上傳（各單不同內容）</span></div>
+      <div class="card"><div class="card-body">
+        <ol style="font-size:12px;color:var(--text2);line-height:2;padding-left:16px;margin-bottom:12px">
+          <li>點擊「下載範本」，依格式填入訂單編號與各單通知內容</li>
+          <li>點擊「選擇 Excel」上傳填好的檔案</li>
+          <li>確認解析筆數後，點擊「開始批次發送」</li>
+        </ol>
+        <div class="batch-actions">
+          <button class="btn-sm btn-sm-outline" onclick="downloadNotifTemplate()">⬇ 下載範本</button>
+          <label class="btn-sm btn-sm-file" for="batch-file-input" style="cursor:pointer">📂 選擇 Excel</label>
+          <input type="file" id="batch-file-input" accept=".xlsx,.xls" style="display:none" onchange="onBatchFileSelected(this)">
+          <span class="batch-file-info" id="batch-file-info">尚未選擇檔案</span>
+        </div>
+        <div class="batch-preview" id="batch-preview">
+          ✅ 已解析 <strong id="batch-count">0</strong> 筆資料，工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
+        </div>
+        <button class="btn-run" id="batch-btn" onclick="runBatch()" disabled>
+          <div class="spinner"></div>
+          <span class="btn-label">▶ 開始批次發送</span>
+        </button>
+      </div></div>
+    </div>
+
+    <!-- 一般工單表單 -->
+    <div id="form-general" style="display:none">
+      <div class="section-label">訂單資訊</div>
+      <div class="card"><div class="card-body">
+        <div class="order-pair">
+          <div class="field-wrap">
+            <label>KKday 訂單編號</label>
+            <textarea id="gen-order-ids" placeholder="26KK291040054&#10;26KK291040055"></textarea>
+          </div>
+          <div class="field-wrap">
+            <label>供應商編號</label>
+            <textarea id="gen-supplier-ids" placeholder="每行對應一筆供應商編號"></textarea>
+          </div>
+        </div>
+        <div class="order-pair-hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
+        <div class="card-section-title">工單分類</div>
+        <div class="field-wrap">
+          <div class="cat-picker" id="cat-picker">
+            <button type="button" class="cat-trigger" id="cat-trigger" onclick="toggleCatPicker(event)">
+              <span class="cat-trigger-text placeholder" id="cat-display">— 請選擇分類 —</span>
+              <span class="cat-trigger-arrow">▼</span>
+            </button>
+            <div class="cat-dropdown" id="cat-dropdown" style="display:none">
+              <div class="cat-search">
+                <input type="text" id="cat-search-input" placeholder="搜尋分類..." oninput="filterCatList(this.value)" autocomplete="off">
+              </div>
+              <div class="cat-list" id="cat-list"></div>
+            </div>
+          </div>
+          <input type="hidden" id="gen-cat-l1" value="">
+          <input type="hidden" id="gen-cat-l2" value="">
+          <input type="hidden" id="gen-cat-l3" value="">
+        </div>
+        <div class="card-section-title">需請客服協助內容</div>
+        <div class="field-wrap">
+          <label style="font-weight:400;color:var(--text3);font-size:11px">通知主旨會自動帶入工單分類路徑</label>
+          <textarea id="gen-notif-content" placeholder="填入通知內容（請輸入中英版本 or 英文）&#10;Please enter the notification content in Chinese/English." style="min-height:100px"></textarea>
+        </div>
+        <button class="btn-run" id="gen-btn" onclick="runGeneral()">
+          <div class="spinner"></div>
+          <span class="btn-label">▶ 開始建立工單</span>
+        </button>
+      </div></div>
+    </div>
+
+  </div>
+
+  <div class="right">
+    <div class="results-header-row">
+      <div class="section-label">執行結果</div>
+      <button class="btn-export" id="export-btn" onclick="exportResults()" style="display:none">⬇ 匯出 Excel</button>
+    </div>
+    <div id="results-wantan">
+      <div class="result-empty"><div class="icon">📋</div><div>輸入訂單編號後點擊執行<br>這裡會顯示每筆訂單的處理進度</div></div>
+    </div>
+    <div id="results-notify" style="display:none">
+      <div class="result-empty"><div class="icon">📋</div><div>輸入訂單編號後點擊執行<br>這裡會顯示每筆訂單的處理進度</div></div>
+    </div>
+    <div id="results-general" style="display:none">
+      <div class="result-empty"><div class="icon">📋</div><div>輸入訂單編號後點擊執行<br>這裡會顯示每筆訂單的處理進度</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Steps (full width) -->
+<div class="steps-outer">
+  <div class="section-label">自動化步驟</div>
+  <div id="steps-wantan">
+    <div class="steps-strip steps-wantan">
+      <div class="step-node"><div class="step-num">1</div><div class="step-text">新增工單</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">2</div><div class="step-text">燈泡帶入<br>最晚處理</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">3</div><div class="step-text">開始處理</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">4</div><div class="step-text">後拋<br>額滿挽單</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">5</div><div class="step-text">燈泡帶入<br>後拋截止</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">6</div><div class="step-text">偵測語系<br>填通知</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">7</div><div class="step-text">確認完成</div></div>
+    </div>
+  </div>
+  <div id="steps-notify" style="display:none">
+    <div class="steps-strip steps-notify">
+      <div class="step-node"><div class="step-num">1</div><div class="step-text">確認<br>已處理</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">2</div><div class="step-text">新增工單</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">3</div><div class="step-text">燈泡帶入<br>最晚處理</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">4</div><div class="step-text">開始處理</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">5</div><div class="step-text">對客通知<br>填主旨內容</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">6</div><div class="step-text">確認發送</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">7</div><div class="step-text">關閉工單</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">8</div><div class="step-text">訂單備註</div></div>
+    </div>
+  </div>
+  <div id="steps-general" style="display:none">
+    <div class="steps-strip steps-general">
+      <div class="step-node"><div class="step-num">1</div><div class="step-text">登入<br>取得日期</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">2</div><div class="step-text">前往<br>客服操作台</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">3</div><div class="step-text">新增工單<br>填訂單編號</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">4</div><div class="step-text">選工單分類<br>（動態）</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">5</div><div class="step-text">燈泡帶入<br>最晚處理</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">6</div><div class="step-text">確認建立<br>開始處理</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">7</div><div class="step-text">後拋<br>填備註</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">8</div><div class="step-text">填通知<br>主旨＋內容</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step-node"><div class="step-num">9</div><div class="step-text">訂單備註<br>重置進度</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-wrap">
+  <div class="stats-group-label">今日</div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">總筆數</div></div>
+    <div class="stat-card"><div class="stat-num green" id="stat-success">—</div><div class="stat-label">成功</div></div>
+    <div class="stat-card"><div class="stat-num red" id="stat-fail">—</div><div class="stat-label">失敗</div></div>
+  </div>
+  <div class="week-nav">
+    <button class="week-btn" onclick="changeWeek(-1)">&#8592;</button>
+    <span id="week-label">本週</span>
+    <button class="week-btn" id="week-next" onclick="changeWeek(1)" disabled>&#8594;</button>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="stat-week-total">—</div><div class="stat-label">總筆數</div></div>
+    <div class="stat-card"><div class="stat-num green" id="stat-week-success">—</div><div class="stat-label">成功</div></div>
+    <div class="stat-card"><div class="stat-num red" id="stat-week-fail">—</div><div class="stat-label">失敗</div></div>
+  </div>
+  <div class="daily-row" id="daily-row"></div>
+</div>
+
+<!-- History -->
+<div class="history-wrap">
+  <div class="history-header">
+    <div class="section-label" id="history-label">挽單紀錄</div>
+    <button class="btn-export" onclick="exportCSV()">⬇ 匯出 Excel</button>
+    <button class="btn-history-toggle" id="history-toggle-btn" onclick="toggleHistory()">▶ 展開</button>
+  </div>
+  <div id="history-table-wrap" style="display:none">
+  <div class="card">
+    <div style="overflow-x:auto">
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>時間</th><th>處理人</th><th>訂單編號</th><th>工單 ID</th>
+          <th>類型</th><th>最晚處理</th><th>後拋截止</th><th>狀態</th>
+        </tr>
+      </thead>
+      <tbody id="history-body">
+        <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem">尚無紀錄</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  </div>
+</div>
+
+<script>
+function selectType(val){
+  document.querySelector('input[name="follow-type"][value="'+val+'"]').checked=true;
+  document.getElementById('opt-page').className='type-opt'+(val==='page'?' sel-page':'');
+  document.getElementById('opt-op').className='type-opt'+(val==='op'?' sel-op':'');
+  toggleOpDates();
+}
+function toggleOpDates(){
+  const sel=document.querySelector('input[name="follow-type"]:checked').value;
+  document.getElementById('op-dates-wrap').style.display=sel==='op'?'block':'none';
+}
+async function checkHealth(){
+  try{const r=await fetch('/api/health');const d=await r.json();document.getElementById('srv').textContent=d.ok?'服務運作中':'無法連線';}
+  catch{document.getElementById('srv').textContent='無法連線';document.querySelector('.status-dot').style.background='#F87171';}
+  setInterval(async()=>{
+    try{
+      const r=await fetch('/api/queue_status');const d=await r.json();
+      const qs=document.getElementById('queue-status');const qt=document.getElementById('queue-text');
+      if(d.active>0||d.waiting>0){qs.style.display='flex';qt.textContent=`⚙️ 執行中 ${d.active}／${d.max}${d.waiting>0?`　⏳ 等候 ${d.waiting} 筆`:''}`;
+      }else{qs.style.display='none';}
+    }catch{}
+  },3000);
+}
+function toggleRemember(){
+  const checked=document.getElementById('remember-me').checked;
+  if(checked){localStorage.setItem('be2_user',document.getElementById('be2-user').value);localStorage.setItem('be2_name',document.getElementById('be2-name').value);}
+  else{localStorage.removeItem('be2_user');localStorage.removeItem('be2_name');}
+  localStorage.setItem('remember_me',checked?'1':'');
+}
+function togglePw(){
+  const inp=document.getElementById('be2-pass');const btn=document.getElementById('pw-toggle');
+  if(inp.type==='password'){inp.type='text';btn.textContent='隱藏';}else{inp.type='password';btn.textContent='顯示';}
+}
+function initAccount(){
+  if(localStorage.getItem('remember_me')==='1'){
+    document.getElementById('remember-me').checked=true;
+    document.getElementById('be2-user').value=localStorage.getItem('be2_user')||'';
+    document.getElementById('be2-name').value=localStorage.getItem('be2_name')||'';
+  }
+}
+document.getElementById('be2-user').addEventListener('input',function(){if(document.getElementById('remember-me').checked)localStorage.setItem('be2_user',this.value);});
+document.getElementById('be2-name').addEventListener('input',function(){if(document.getElementById('remember-me').checked)localStorage.setItem('be2_name',this.value);});
+initAccount();
+
+let weekOffset=0;
+function changeWeek(delta){weekOffset+=delta;if(weekOffset>0)weekOffset=0;document.getElementById('week-next').disabled=(weekOffset>=0);loadStats();}
+async function loadStats(){
+  try{
+    const r=await fetch('/api/stats?offset='+weekOffset);const d=await r.json();
+    document.getElementById('stat-total').textContent=d.today_total;
+    document.getElementById('stat-success').textContent=d.today_success;
+    document.getElementById('stat-fail').textContent=d.today_fail;
+    document.getElementById('stat-week-total').textContent=d.week_total;
+    document.getElementById('stat-week-success').textContent=d.week_success;
+    document.getElementById('stat-week-fail').textContent=d.week_fail;
+    const ws=d.week_start?d.week_start.slice(5).replace('-','/'):'-';
+    const we=d.week_end?d.week_end.slice(5).replace('-','/'):'-';
+    document.getElementById('week-label').textContent=weekOffset===0?`本週 (${ws}–${we})`:`第 ${weekOffset} 週 (${ws}–${we})`;
+    const todayStr=new Date().toISOString().slice(0,10);
+    const dayNames=['一','二','三','四','五','六','日'];
+    let html='';
+    for(let i=0;i<7;i++){
+      const ds=new Date(d.week_start);ds.setDate(ds.getDate()+i);
+      const dateStr=ds.toISOString().slice(0,10);
+      if(weekOffset===0&&dateStr>todayStr)break;
+      const info=d.daily&&d.daily[dateStr]||{total:0,success:0,fail:0};
+      const isToday=dateStr===todayStr;
+      const mmdd=dateStr.slice(5).replace('-','/');
+      html+=`<div class="daily-cell${isToday?' today':''}"><div class="daily-day">${dayNames[i]} <span style="font-weight:400">${mmdd}</span></div><div class="daily-count">${info.total}</div><div class="daily-sub">${info.success}✓${info.fail>0?' '+info.fail+'✗':''}</div></div>`;
+    }
+    document.getElementById('daily-row').innerHTML=html||'<div style="color:var(--text3);font-size:12px">本週尚無資料</div>';
+  }catch{}
+}
+async function loadHistory(){
+  try{
+    const r=await fetch('/api/history');const rows=await r.json();
+    const tbody=document.getElementById('history-body');
+    if(!rows.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem">尚無紀錄</td></tr>';return;}
+    tbody.innerHTML=rows.slice(0,100).map(r=>{
+      const t=r.timestamp?r.timestamp.replace('T',' ').slice(0,16):'';
+      return `<tr>
+        <td class="mono" style="color:var(--text3);white-space:nowrap">${t}</td>
+        <td style="font-weight:500">${r.operator||'—'}</td>
+        <td class="mono">${r.order_id||''}</td>
+        <td class="mono">${r.ticket_id?'#'+r.ticket_id:'—'}</td>
+        <td>${r.is_urgent?'<span class="badge urgent">急單</span>':'<span class="badge normal">一般單</span>'}</td>
+        <td class="mono" style="white-space:nowrap">${r.ticket_deadline||'—'}</td>
+        <td class="mono" style="white-space:nowrap">${r.follow_deadline||'—'}</td>
+        <td>${r.success?'<span class="badge ok">✓ 成功</span>':`<span class="badge fail" title="${r.error||''}">✗ 失敗</span>`}</td>
+      </tr>`;
+    }).join('');
+  }catch{}
+}
+
+function buildResultCard(key, label){
+  const c=document.createElement('div');
+  c.className='result-card';c.id='card-'+key;
+  c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${label}</div><div class="result-tag" style="background:var(--amber-light);color:#92400E">處理中</div></div><div class="progress-log" id="log-${key}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">等待執行...</div></div></div>`;
+  return c;
+}
+function fillCard(card, r, logId){
+  const hdr=card.querySelector('.result-header');
+  hdr.className='result-header '+(r.success?'success':'error');
+  hdr.innerHTML=`<div class="result-header-icon">${r.success?'✅':'❌'}</div><div class="result-header-title">${r.order_id||'—'}</div>${r.success?`<div class="result-tag ${r.is_urgent?'urgent':'normal'}">${r.is_urgent?'急單':'一般單'}</div>`:'<div class="result-tag" style="background:#FEE2E2;color:#991B1B">失敗</div>'}`;
+  if(r.success){
+    const cols=r.follow_deadline?
+      `<div class="summary-cell"><div class="summary-cell-label">工單 ID</div><div class="summary-cell-value">#${r.ticket_id}</div></div><div class="summary-cell"><div class="summary-cell-label">最晚處理</div><div class="summary-cell-value">${r.ticket_deadline}</div></div><div class="summary-cell"><div class="summary-cell-label">後拋截止</div><div class="summary-cell-value">${r.follow_deadline}</div></div>`:
+      `<div class="summary-cell"><div class="summary-cell-label">工單 ID</div><div class="summary-cell-value">#${r.ticket_id}</div></div><div class="summary-cell"><div class="summary-cell-label">最晚處理</div><div class="summary-cell-value">${r.ticket_deadline}</div></div>`;
+    card.querySelector('.progress-log').insertAdjacentHTML('beforebegin',`<div class="summary-grid" style="grid-template-columns:${r.follow_deadline?'repeat(3,1fr)':'repeat(2,1fr)'}">${cols}</div>`);
+  }
+  const lg=card.querySelector('#'+logId);lg.innerHTML='';
+  for(const item of(r.progress||[])){
+    const ln=document.createElement('div');
+    ln.className='log-line '+(item.status==='ok'?'ok':item.status==='error'?'error':'');
+    ln.innerHTML=`<div class="log-icon">${item.status==='ok'?'✅':item.status==='error'?'❌':'⟳'}</div><div class="log-msg">${item.msg}</div>`;
+    lg.appendChild(ln);
+  }
+  lg.style.display='none';
+  const tog=document.createElement('button');
+  tog.className='log-toggle';
+  tog.textContent='展開詳情 ▾';
+  tog.onclick=()=>{const open=lg.style.display!=='none';lg.style.display=open?'none':'';tog.textContent=open?'展開詳情 ▾':'收起詳情 ▴';};
+  card.appendChild(tog);
+}
+
+async function runFlow(){
+  const orderRaw=document.getElementById('order-ids').value.trim();
+  const supplierRaw=document.getElementById('supplier-ids').value.trim();
+  if(!orderRaw&&!supplierRaw){alert('請輸入 KKday 訂單編號或供應商編號');return;}
+  const btn=document.getElementById('run-btn');
+  btn.disabled=true;btn.classList.add('running');
+  showStopBtn();
+  const orderIds=orderRaw?orderRaw.split('\n').map(s=>s.trim().toUpperCase()).filter(Boolean):[];
+  const supplierIds=supplierRaw?supplierRaw.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  const maxLen=Math.max(orderIds.length,supplierIds.length);
+  const el=document.getElementById('results-wantan');el.innerHTML='';
+  const cards={};
+  for(let i=0;i<maxLen;i++){
+    const oid=orderIds[i]||'';const sid=supplierIds[i]||'';const key=oid||sid;
+    const label=oid||(sid?`供應商：${sid}`:'');
+    const c=buildResultCard(key,label);el.appendChild(c);cards[key]=c;
+  }
+  try{
+    const username=document.getElementById('be2-user').value.trim();
+    const password=document.getElementById('be2-pass').value;
+    const operator=document.getElementById('be2-name').value.trim();
+    if(!username||!password){alert('請輸入 BE2 帳號與密碼');btn.disabled=false;btn.classList.remove('running');return;}
+    if(!operator){alert('請輸入你的名字');btn.disabled=false;btn.classList.remove('running');return;}
+    const res=await fetch('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_ids:orderRaw,supplier_ids:supplierRaw,username,password,operator,follow_type:document.querySelector('input[name="follow-type"]:checked').value,op_dates:document.getElementById('op-dates').value.trim()})});
+    const data=await res.json();
+    if(data.error){el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">錯誤</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${data.error}</div></div></div></div>`;return;}
+    for(const r of data.results){const key=r.input_id||r.order_id;const card=cards[key];if(!card)continue;fillCard(card,r,'log-'+key);}
+    _tabResults.wantan=data.results;document.getElementById('export-btn').style.display='';
+    loadStats();loadHistory();
+  }catch(e){
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">連線失敗</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">無法連線伺服器：${e.message}</div></div></div></div>`;
+  }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
+}
+
+let currentMode='wantan';
+const _tabResults={wantan:[],notify:[],general:[]};
+
+function switchMode(mode){
+  currentMode=mode;
+  document.documentElement.setAttribute('data-mode', mode);
+  document.getElementById('tab-wantan').className='mode-tab wantan'+(mode==='wantan'?' active':'');
+  document.getElementById('tab-notify').className='mode-tab notify'+(mode==='notify'?' active':'');
+  document.getElementById('tab-general').className='mode-tab general'+(mode==='general'?' active':'');
+  document.getElementById('form-wantan').style.display=mode==='wantan'?'':'none';
+  document.getElementById('form-notify').style.display=mode==='notify'?'':'none';
+  document.getElementById('form-general').style.display=mode==='general'?'':'none';
+  document.getElementById('steps-wantan').style.display=mode==='wantan'?'':'none';
+  document.getElementById('steps-notify').style.display=mode==='notify'?'':'none';
+  document.getElementById('steps-general').style.display=mode==='general'?'':'none';
+  ['wantan','notify','general'].forEach(m=>document.getElementById('results-'+m).style.display=m===mode?'':'none');
+  document.getElementById('export-btn').style.display=_tabResults[mode].length?'':'none';
+  const labels={'wantan':'挽單紀錄','notify':'對客通知紀錄','general':'一般工單紀錄'};
+  document.getElementById('history-label').textContent=labels[mode]||'紀錄';
+  loadHistory();
+}
+
+function showStopBtn(){ document.getElementById('stop-btn-global').style.display='flex'; }
+function hideStopBtn(){ document.getElementById('stop-btn-global').style.display='none'; }
+
+async function stopRun(){
+  try{ await fetch('/api/stop',{method:'POST'}); }catch{}
+}
+
+async function exportResults(){
+  const rs=_tabResults[currentMode]||[];
+  if(!rs.length)return;
+  const titles={wantan:'額滿挽單執行結果',notify:'對客通知執行結果',general:'一般工單執行結果'};
+  try{
+    const res=await fetch('/api/export_results',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({results:rs,title:titles[currentMode]})});
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=titles[currentMode]+'.xlsx';a.click();URL.revokeObjectURL(url);
+  }catch(e){alert('匯出失敗：'+e.message);}
+}
+
+async function runNotification(){
+  const orderRaw=document.getElementById('notify-order-ids').value.trim();
+  const supplierRaw=document.getElementById('notify-supplier-ids').value.trim();
+  const content=document.getElementById('notify-content').value.trim();
+  if(!orderRaw&&!supplierRaw){alert('請輸入 KKday 訂單編號或供應商編號');return;}
+  if(!content){alert('請輸入對客通知內容');return;}
+  const btn=document.getElementById('notify-btn');
+  btn.disabled=true;btn.classList.add('running');
+  showStopBtn();
+  const username=document.getElementById('be2-user').value.trim();
+  const password=document.getElementById('be2-pass').value;
+  const operator=document.getElementById('be2-name').value.trim();
+  if(!username||!password){alert('請輸入 BE2 帳號與密碼');btn.disabled=false;btn.classList.remove('running');return;}
+  if(!operator){alert('請輸入你的名字');btn.disabled=false;btn.classList.remove('running');return;}
+  const orderIds=orderRaw?orderRaw.split('\n').map(s=>s.trim().toUpperCase()).filter(Boolean):[];
+  const supplierIds=supplierRaw?supplierRaw.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  const maxLen=Math.max(orderIds.length,supplierIds.length);
+  const el=document.getElementById('results-notify');el.innerHTML='';
+  const cards={};
+  for(let i=0;i<maxLen;i++){
+    const oid=orderIds[i]||'';const sid=supplierIds[i]||'';
+    const label=oid||(sid?'供應商:'+sid:'');
+    const c=document.createElement('div');c.className='result-card';c.id='ncard-'+i;
+    c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${label}</div><div class="result-tag" style="background:var(--amber-light);color:#92400E">處理中</div></div><div class="progress-log" id="nlog-${i}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">等待執行...</div></div></div>`;
+    el.appendChild(c);cards[i]=c;
+  }
+  try{
+    const res=await fetch('/api/run_notification',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_ids:orderRaw,supplier_ids:supplierRaw,notification_content:content,username,password,operator})});
+    const data=await res.json();
+    if(data.error){el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">錯誤</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${data.error}</div></div></div></div>`;return;}
+    for(let i=0;i<data.results.length;i++){const r=data.results[i];const card=cards[i];if(!card)continue;fillCard(card,r,'nlog-'+i);}
+    _tabResults.notify=data.results;document.getElementById('export-btn').style.display='';
+    loadStats();loadHistory();
+  }catch(e){
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">連線失敗</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">無法連線伺服器：${e.message}</div></div></div></div>`;
+  }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
+}
+
+// ── 批次對客通知 ──
+let _batchFile = null;
+let _batchRows = [];
+
+function downloadNotifTemplate(){
+  window.location='/api/notification_template';
+}
+
+async function onBatchFileSelected(input){
+  const file=input.files[0];
+  if(!file)return;
+  _batchFile=file;
+  document.getElementById('batch-file-info').textContent=file.name;
+  document.getElementById('batch-preview').style.display='none';
+  document.getElementById('batch-btn').disabled=true;
+  const fd=new FormData();fd.append('file',file);
+  try{
+    const res=await fetch('/api/parse_notification_excel',{method:'POST',body:fd});
+    const data=await res.json();
+    if(data.error){alert('解析失敗：'+data.error);_batchFile=null;_batchRows=[];return;}
+    if(data.count===0){alert('Excel 內無有效資料，請確認 A 欄填訂單編號、B 欄填通知內容');_batchFile=null;_batchRows=[];return;}
+    _batchRows=data.rows;
+    document.getElementById('batch-count').textContent=data.count;
+    document.getElementById('batch-preview').style.display='';
+    document.getElementById('batch-btn').disabled=false;
+  }catch(e){alert('解析失敗：'+e.message);_batchFile=null;_batchRows=[];}
+}
+
+async function runBatch(){
+  if(!_batchFile||!_batchRows.length){alert('請先選擇 Excel 檔案');return;}
+  const username=document.getElementById('be2-user').value.trim();
+  const password=document.getElementById('be2-pass').value;
+  const operator=document.getElementById('be2-name').value.trim();
+  if(!username||!password){alert('請輸入 BE2 帳號與密碼');return;}
+  if(!operator){alert('請輸入你的名字');return;}
+  const btn=document.getElementById('batch-btn');
+  btn.disabled=true;btn.classList.add('running');showStopBtn();
+  const el=document.getElementById('results-notify');el.innerHTML='';
+  const cards={};
+  _batchRows.forEach((row,i)=>{
+    const c=document.createElement('div');c.className='result-card';c.id='bcard-'+i;
+    c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${row.order_id}</div><div class="result-tag" style="background:var(--amber-light);color:#92400E">處理中</div></div><div class="progress-log" id="blog-${i}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">等待執行...</div></div></div>`;
+    el.appendChild(c);cards[i]=c;
+  });
+  const fd=new FormData();
+  fd.append('file',_batchFile);
+  fd.append('username',username);
+  fd.append('password',password);
+  fd.append('operator',operator);
+  try{
+    const res=await fetch('/api/run_notification_batch',{method:'POST',body:fd});
+    const data=await res.json();
+    if(data.error){el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">錯誤</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${data.error}</div></div></div></div>`;return;}
+    for(let i=0;i<data.results.length;i++){const r=data.results[i];const card=cards[i];if(!card)continue;fillCard(card,r,'blog-'+i);}
+    _tabResults.notify=data.results;document.getElementById('export-btn').style.display='';
+    loadStats();loadHistory();
+  }catch(e){
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">連線失敗</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">無法連線伺服器：${e.message}</div></div></div></div>`;
+  }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
+}
+
+let historyData=[];
+const _typeMap={wantan:'挽單',notify:'行前通知',general:'一般工單'};
+const _origLoadHistory=loadHistory;
+async function loadHistory(){
+  try{
+    const r=await fetch('/api/history');const rows=await r.json();
+    historyData=rows;
+    const typeKey=_typeMap[currentMode]||'';
+    const filtered=rows.filter(r=>r.type&&r.type.startsWith(typeKey));
+    const tbody=document.getElementById('history-body');
+    if(!filtered.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem">尚無紀錄</td></tr>';return;}
+    tbody.innerHTML=filtered.slice(0,100).map(r=>{
+      const t=r.timestamp?r.timestamp.replace('T',' ').slice(0,16):'';
+      return `<tr>
+        <td class="mono" style="color:var(--text3);white-space:nowrap">${t}</td>
+        <td style="font-weight:500">${r.operator||'—'}</td>
+        <td class="mono">${r.order_id||''}</td>
+        <td class="mono">${r.ticket_id?'#'+r.ticket_id:'—'}</td>
+        <td>${r.is_urgent?'<span class="badge urgent">急單</span>':'<span class="badge normal">一般單</span>'}</td>
+        <td class="mono" style="white-space:nowrap">${r.ticket_deadline||'—'}</td>
+        <td class="mono" style="white-space:nowrap">${r.follow_deadline||'—'}</td>
+        <td>${r.success?'<span class="badge ok">✓ 成功</span>':`<span class="badge fail" title="${r.error||''}">✗ 失敗</span>`}</td>
+      </tr>`;
+    }).join('');
+  }catch{}
+}
+
+function toggleHistory(){
+  const wrap=document.getElementById('history-table-wrap');
+  const btn=document.getElementById('history-toggle-btn');
+  const open=wrap.style.display==='none';
+  wrap.style.display=open?'':'none';
+  btn.textContent=open?'▼ 收起':'▶ 展開';
+}
+
+function exportCSV(){
+  if(!historyData.length){alert('尚無紀錄可匯出');return;}
+  const headers=['時間','處理人','訂單編號','工單ID','類型','最晚處理','後拋截止','狀態','錯誤訊息'];
+  const rows=historyData.map(r=>[
+    r.timestamp?r.timestamp.replace('T',' ').slice(0,16):'',
+    r.operator||'',
+    r.order_id||'',
+    r.ticket_id?'#'+r.ticket_id:'',
+    r.is_urgent?'急單':'一般單',
+    r.ticket_deadline||'',
+    r.follow_deadline||'',
+    r.success?'成功':'失敗',
+    r.error||''
+  ]);
+  const csv='﻿'+[headers,...rows].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;a.download=`挽單紀錄_${date}.csv`;a.click();
+  URL.revokeObjectURL(url);
+}
+
+checkHealth();setInterval(checkHealth,30000);
+loadStats();loadHistory();
+
+// ── 一般工單分類清單（平鋪，對應 BE2 真實分類）──────────────────
+const TICKET_FLAT = [
+  ['訂購資料索取','接駁','上下車地點'],
+  ['訂購資料索取','接駁','接駁時間'],
+  ['訂購資料索取','接駁','包車行程'],
+  ['訂購資料索取','接駁','用車資訊（行李/孩童/嬰兒座椅數）'],
+  ['訂購資料索取','接駁','車次'],
+  ['訂購資料索取','旅客資料','證件短缺'],
+  ['訂購資料索取','旅客資料','年齡/票種異常'],
+  ['訂購資料索取','旅客資料','姓名異常'],
+  ['訂購資料索取','旅客資料','裝備相關（身高/體重/鞋碼/度數）'],
+  ['訂購資料索取','旅客資料','聯繫方式'],
+  ['訂購資料索取','旅客資料','體驗時間'],
+  ['訂購資料索取','旅客資料','主訂單詢問'],
+  ['訂購資料索取','寄送資料','地址資訊不完整'],
+  ['訂購資料索取','SIM卡 / Wi-Fi','手機型號'],
+  ['訂購資料索取','SIM卡 / Wi-Fi','開通日期'],
+  ['系統異常','無法訂購','詢問等候意願'],
+  ['訂單異動','額滿 / 售磬','挽單'],
+  ['訂單異動','浮動價格','補價差'],
+  ['訂單異動','供應商通知','改期'],
+  ['訂單異動','供應商通知','商品更動'],
+  ['訂單異動','待成團','詢問等候意願'],
+  ['訂單異動','資料更新','憑證'],
+  ['訂單異動','資料更新','使用資訊'],
+  ['訂單異動','資料更新','修改訂單處理進度 (齊全)'],
+  ['訂單異動','資料更新','轉達行前注意事項'],
+  ['訂單異動','申請取消失敗','旅客未完成退票'],
+  ['訂單異動','申請取消失敗','部分商品已使用無法取消退費'],
+  ['BD/AM 疏失','無法訂購','詢問等候意願'],
+  ['BD/AM 疏失','無法訂購','改期'],
+  ['供應商自理訊息','供應商通知','回覆旅客詢問'],
+  ['供應商自理訊息','供應商通知','收據/發票索取'],
+  ['供應商自理訊息','供應商通知','單換單'],
+  ['供應商自理訊息','供應商通知','客訴'],
+  ['供應商自理訊息','供應商通知','轉達行前注意事項'],
+  ['其他','特殊情境','旅客備注回覆'],
+  ['其他','特殊情境','成團時間通知'],
+  ['其他','特殊情境','退回取消狀態'],
+  ['其他','特殊情境','恢復訂單狀態'],
+];
+
+// ── 平鋪分類選單 ────────────────────────────────────────────────
+let _catOpen=false;
+
+function toggleCatPicker(e){
+  e.stopPropagation();
+  _catOpen=!_catOpen;
+  const dd=document.getElementById('cat-dropdown');
+  const btn=document.getElementById('cat-trigger');
+  btn.classList.toggle('open',_catOpen);
+  if(_catOpen){
+    const rect=btn.getBoundingClientRect();
+    dd.style.top=(rect.bottom+4)+'px';
+    dd.style.left=rect.left+'px';
+    dd.style.width=rect.width+'px';
+    const listMaxH=window.innerHeight-rect.bottom-24;
+    document.getElementById('cat-list').style.maxHeight=Math.max(listMaxH,120)+'px';
+    dd.style.display='block';
+    document.getElementById('cat-search-input').value='';
+    renderCatList('');
+    setTimeout(()=>{ document.getElementById('cat-search-input').focus(); document.addEventListener('click',_closeCatOutside); },0);
+  } else {
+    dd.style.display='none';
+  }
+}
+function _closeCatOutside(e){
+  if(!document.getElementById('cat-picker').contains(e.target)){
+    document.getElementById('cat-dropdown').style.display='none';
+    document.getElementById('cat-trigger').classList.remove('open');
+    _catOpen=false;
+  }
+  document.removeEventListener('click',_closeCatOutside);
+}
+function _updateCatPos(){
+  if(!_catOpen) return;
+  const btn=document.getElementById('cat-trigger');
+  const dd=document.getElementById('cat-dropdown');
+  const rect=btn.getBoundingClientRect();
+  dd.style.top=(rect.bottom+4)+'px';
+  dd.style.left=rect.left+'px';
+  dd.style.width=rect.width+'px';
+  document.getElementById('cat-list').style.maxHeight=Math.max(window.innerHeight-rect.bottom-24,120)+'px';
+}
+window.addEventListener('scroll',_updateCatPos,true);
+function renderCatList(q){
+  const list=document.getElementById('cat-list');
+  const cur=document.getElementById('gen-cat-l1').value+'|'+document.getElementById('gen-cat-l2').value+'|'+document.getElementById('gen-cat-l3').value;
+  const kw=q.trim().toLowerCase();
+  const hits=TICKET_FLAT.filter(r=>!kw||r.join(' > ').toLowerCase().includes(kw));
+  if(!hits.length){ list.innerHTML='<div class="cat-empty">找不到符合的分類</div>'; return; }
+  list.innerHTML='';
+  hits.forEach(([l1,l2,l3])=>{
+    const key=l1+'|'+l2+'|'+l3;
+    const d=document.createElement('div');
+    d.className='cat-item'+(cur===key?' active':'');
+    d.innerHTML=`${l1}<span class="sep">&rsaquo;</span>${l2}<span class="sep">&rsaquo;</span>${l3}`;
+    d.onclick=(e)=>{ e.stopPropagation(); selectCat(l1,l2,l3); };
+    list.appendChild(d);
+  });
+}
+function filterCatList(q){ renderCatList(q); }
+function selectCat(l1,l2,l3){
+  document.getElementById('gen-cat-l1').value=l1;
+  document.getElementById('gen-cat-l2').value=l2;
+  document.getElementById('gen-cat-l3').value=l3;
+  const disp=document.getElementById('cat-display');
+  disp.textContent=l1+' › '+l2+' › '+l3;
+  disp.classList.remove('placeholder');
+  document.getElementById('cat-dropdown').style.display='none';
+  document.getElementById('cat-trigger').classList.remove('open');
+  _catOpen=false;
+}
+
+async function runGeneral(){
+  const orderRaw=document.getElementById('gen-order-ids').value.trim();
+  const supplierRaw=document.getElementById('gen-supplier-ids').value.trim();
+  const catL1=document.getElementById('gen-cat-l1').value;
+  const catL2=document.getElementById('gen-cat-l2').value;
+  const catL3=document.getElementById('gen-cat-l3').value;
+  const notifContent=document.getElementById('gen-notif-content').value.trim();
+  if(!orderRaw&&!supplierRaw){alert('請輸入 KKday 訂單編號或供應商編號');return;}
+  if(!catL1||!catL2||!catL3){alert('請選擇完整工單分類（大／中／小）');return;}
+  if(!notifContent){alert('請填入對客通知內容');return;}
+  const btn=document.getElementById('gen-btn');
+  btn.disabled=true;btn.classList.add('running');showStopBtn();
+  const username=document.getElementById('be2-user').value.trim();
+  const password=document.getElementById('be2-pass').value;
+  const operator=document.getElementById('be2-name').value.trim();
+  if(!username||!password){alert('請輸入 BE2 帳號與密碼');btn.disabled=false;btn.classList.remove('running');return;}
+  if(!operator){alert('請輸入你的名字');btn.disabled=false;btn.classList.remove('running');return;}
+  const orderIds=orderRaw?orderRaw.split('\n').map(s=>s.trim().toUpperCase()).filter(Boolean):[];
+  const supplierIds=supplierRaw?supplierRaw.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  const maxLen=Math.max(orderIds.length,supplierIds.length);
+  const el=document.getElementById('results-general');el.innerHTML='';
+  const cards={};
+  for(let i=0;i<maxLen;i++){
+    const oid=orderIds[i]||'';const sid=supplierIds[i]||'';
+    const label=oid||(sid?'供應商:'+sid:'');
+    const c=document.createElement('div');c.className='result-card';c.id='gcard-'+i;
+    c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${label}</div><div class="result-tag" style="background:var(--amber-light);color:#0F766E">處理中</div></div><div class="progress-log" id="glog-${i}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">等待執行...</div></div></div>`;
+    el.appendChild(c);cards[i]=c;
+  }
+  try{
+    const res=await fetch('/api/run_general',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_ids:orderRaw,supplier_ids:supplierRaw,cat_l1:catL1,cat_l2:catL2,cat_l3:catL3,notif_content:notifContent,username,password,operator})});
+    const data=await res.json();
+    if(data.error){el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">錯誤</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${data.error}</div></div></div></div>`;return;}
+    for(let i=0;i<data.results.length;i++){const r=data.results[i];const card=cards[i];if(!card)continue;fillCard(card,r,'glog-'+i);}
+    _tabResults.general=data.results;document.getElementById('export-btn').style.display='';
+    loadStats();loadHistory();
+  }catch(e){
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">連線失敗</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">無法連線伺服器：${e.message}</div></div></div></div>`;
+  }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
+}
+
+function openHelp(){ document.getElementById('help-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeHelp(){ document.getElementById('help-overlay').classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
+</script>
+
+<!-- ── 使用說明書 Modal ── -->
+<div class="help-overlay" id="help-overlay" onclick="if(event.target===this)closeHelp()">
+  <div class="help-modal">
+    <div class="help-modal-head">
+      <div>
+        <h2>📋 工單自動化 使用說明書</h2>
+        <p>KKday BE2 工單自動化工具 · 操作指南</p>
+      </div>
+      <button class="help-close" onclick="closeHelp()">✕</button>
+    </div>
+    <div class="help-body">
+
+      <!-- 帳號設定 -->
+      <div class="help-section">
+        <div class="help-section-title">⚙️ 帳號設定</div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#F5F0E8">🔐</div>
+          <div class="help-row-content">
+            <div class="help-row-title">BE2 帳號 / 密碼</div>
+            <div class="help-row-desc">填入你的 BE2 登入帳號與密碼。勾選「<b>記住帳號與名字</b>」後，重整或重開頁面時會自動帶入（<b>密碼不會儲存</b>，每次需重新輸入）。</div>
+          </div>
+        </div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#F5F0E8">👤</div>
+          <div class="help-row-content">
+            <div class="help-row-title">你的名字</div>
+            <div class="help-row-desc">填入你的名字，將顯示在訂單備註紀錄上，方便追蹤是誰執行的。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 三個功能分頁 -->
+      <div class="help-section">
+        <div class="help-section-title">📑 功能分頁總覽</div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#FEF3C7">🟡</div>
+          <div class="help-row-content">
+            <div class="help-row-title">額滿挽單 <span class="help-tag help-tag-w">挽單</span></div>
+            <div class="help-row-desc">輸入訂單編號（或供應商編號），自動建立挽單工單、後拋，並填入挽單通知內容。支援多筆同時執行，每行一筆。</div>
+          </div>
+        </div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#E4EDE5">🟢</div>
+          <div class="help-row-content">
+            <div class="help-row-title">一般工單 <span class="help-tag help-tag-g">一般工單</span></div>
+            <div class="help-row-desc">輸入訂單編號，選擇工單分類（大 / 中 / 小），填入對客通知內容，自動建立工單並後拋。支援多筆同時執行，每行一筆。</div>
+          </div>
+        </div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#FFE4E6">🔴</div>
+          <div class="help-row-content">
+            <div class="help-row-title">對客通知 <span class="help-tag help-tag-n">行前通知</span></div>
+            <div class="help-row-desc">自動建立對客通知工單並發送。分為兩種模式：<br>
+              <b>單筆模式</b>：所有訂單使用相同通知內容，多筆填法與其他頁相同。<br>
+              <b>批次模式</b>：每筆訂單發送不同內容，需上傳 Excel 範本（見下方說明）。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 訂單編號填寫方式 -->
+      <div class="help-section">
+        <div class="help-section-title">✏️ 訂單編號填寫方式</div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#F5F0E8">📋</div>
+          <div class="help-row-content">
+            <div class="help-row-title">KKday 訂單編號 vs 供應商編號</div>
+            <div class="help-row-desc">兩欄<b>填一即可</b>，每行對應一筆訂單。若同時填兩欄，系統會將同一行的 KKday 編號與供應商編號視為同一筆訂單。<br><br>
+              範例（多筆）：<br>
+              <code style="background:#F5F0E8;padding:4px 8px;border-radius:5px;font-size:11px;display:inline-block;margin-top:4px">26KK231600728<br>25KK258710416<br>25KK269680760</code>
+            </div>
+          </div>
+        </div>
+        <div class="help-tip">💡 額滿挽單 / 一般工單若輸入供應商編號，系統會自動查詢對應的 KKday 訂單編號再繼續執行。</div>
+      </div>
+
+      <!-- 批次對客通知 -->
+      <div class="help-section">
+        <div class="help-section-title">📂 批次對客通知（各單不同內容）</div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#EDE9FE">1️⃣</div>
+          <div class="help-row-content">
+            <div class="help-row-title">下載範本</div>
+            <div class="help-row-desc">點擊「<b>⬇ 下載範本</b>」取得 Excel 範本。A 欄填 KKday 訂單編號，B 欄填各單通知內容（中英版本或純英文）。</div>
+          </div>
+        </div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#EDE9FE">2️⃣</div>
+          <div class="help-row-content">
+            <div class="help-row-title">選擇 Excel 上傳</div>
+            <div class="help-row-desc">點擊「<b>📂 選擇 Excel</b>」上傳填好的檔案，頁面會顯示「已解析 N 筆資料」確認筆數無誤。</div>
+          </div>
+        </div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#EDE9FE">3️⃣</div>
+          <div class="help-row-content">
+            <div class="help-row-title">開始批次發送</div>
+            <div class="help-row-desc">確認筆數後，點擊「<b>▶ 開始批次發送</b>」，系統依序處理每筆訂單。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 可改類型（額滿挽單專屬） -->
+      <div class="help-section">
+        <div class="help-section-title">🔀 可改類型 <span class="help-tag help-tag-w">額滿挽單專屬</span></div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#FEF3C7">🛍️</div>
+          <div class="help-row-content">
+            <div class="help-row-title">依商品頁面</div>
+            <div class="help-row-desc">系統自動讀取商品頁面語系，套用對應語言的挽單通知模板（中文 / 英文 / 日文等）。<b>建議使用此選項</b>。</div>
+          </div>
+        </div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#FEF3C7">✍️</div>
+          <div class="help-row-content">
+            <div class="help-row-title">依 OP 提供</div>
+            <div class="help-row-desc">選擇後會出現日期輸入欄，請填入 OP 提供的出發日期，系統依此計算通知內容。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 執行結果 -->
+      <div class="help-section">
+        <div class="help-section-title">📊 執行結果</div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#F0FDF4">✅</div>
+          <div class="help-row-content">
+            <div class="help-row-title">成功</div>
+            <div class="help-row-desc">顯示綠色「<b>成功</b>」標籤，並附上工單 ID、最晚處理時間等資訊。點擊「<b>展開詳情</b>」可查看完整執行步驟紀錄。</div>
+          </div>
+        </div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#FEF2F2">❌</div>
+          <div class="help-row-content">
+            <div class="help-row-title">失敗</div>
+            <div class="help-row-desc">顯示紅色「<b>失敗</b>」標籤，點擊「<b>展開詳情</b>」可查看失敗原因與執行到哪個步驟出錯。</div>
+          </div>
+        </div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#F5F0E8">⬇️</div>
+          <div class="help-row-content">
+            <div class="help-row-title">匯出 Excel</div>
+            <div class="help-row-desc">執行完成後，右上角出現「<b>⬇ 匯出 Excel</b>」按鈕，可將本次執行的所有訂單結果（訂單編號、工單 ID、狀態、最晚處理時間等）下載為 Excel 檔案。</div>
+          </div>
+        </div>
+        <div class="help-tip">💡 切換分頁後，各頁的執行結果<b>不會消失</b>，切回去仍可查看。</div>
+      </div>
+
+      <!-- 停止按鈕 -->
+      <div class="help-section">
+        <div class="help-section-title">⏹ 停止執行</div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#FEF2F2">🛑</div>
+          <div class="help-row-content">
+            <div class="help-row-title">如何停止 <span class="help-chip-red">⏹ 停止</span></div>
+            <div class="help-row-desc">執行中時，頁面頂部右側會出現紅色「<b>⏹ 停止</b>」按鈕。點擊後，系統會在<b>當前步驟完成後立即中斷</b>（最多等待幾秒），並不再繼續處理後續訂單。<br><br>
+            已中斷的訂單結果會顯示「<b>失敗 / 已手動停止</b>」，後續未處理的訂單則不會出現在結果中。</div>
+          </div>
+        </div>
+        <div class="help-tip">⚠️ 停止後，已完成發送的訂單<b>不會被撤回</b>，只有尚未開始的訂單會被跳過。</div>
+      </div>
+
+      <!-- 歷史紀錄 -->
+      <div class="help-section">
+        <div class="help-section-title">🕓 歷史紀錄</div>
+        <div class="help-row">
+          <div class="help-row-icon" style="background:#F5F0E8">📜</div>
+          <div class="help-row-content">
+            <div class="help-row-title">查看過往執行紀錄</div>
+            <div class="help-row-desc">頁面下方的「<b>歷史紀錄</b>」區塊，會依目前所在分頁自動篩選對應的紀錄：<br>
+            • 額滿挽單頁：顯示挽單紀錄<br>
+            • 一般工單頁：顯示一般工單紀錄<br>
+            • 對客通知頁：顯示行前通知紀錄<br><br>
+            每筆紀錄包含執行時間、訂單編號、工單 ID 及執行結果。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 注意事項 -->
+      <div class="help-section">
+        <div class="help-section-title">⚠️ 注意事項</div>
+        <div class="help-tip" style="line-height:2">
+          • 執行期間<b>請勿關閉或重新整理頁面</b>，否則執行中的訂單會被強制中斷。<br>
+          • 系統最多同時執行 <b>2 個瀏覽器</b>，多筆訂單時會自動排隊（頂部顯示「執行中 N/2」）。<br>
+          • 密碼不會被儲存，每次使用需重新輸入。<br>
+          • 若出現「<b>連線失敗</b>」，請確認後端服務是否正常運行（右上角顯示「服務運作中」為正常）。
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
