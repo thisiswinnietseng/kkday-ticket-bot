@@ -427,13 +427,18 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 );
                 if (el) el.click();
             }""")
-            await page.wait_for_timeout(800)
+            await page.wait_for_timeout(1500)
 
             # 最晚處理時間 - 點燈泡自動帶入
             push('點擊最晚處理時間燈泡...')
             await page.locator("button[class*='k-btn--orange']").first.click()
-            await page.wait_for_timeout(2000)
+            await page.wait_for_timeout(3000)
             tdl = await page.locator("input[placeholder='Select date']").first.input_value()
+            if not tdl:
+                push('燈泡未帶入，重試一次...')
+                await page.locator("button[class*='k-btn--orange']").first.click()
+                await page.wait_for_timeout(3000)
+                tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
                 raise Exception('最晚處理時間燈泡點擊後仍為空，請確認工單分類與商品類型已選擇')
             push(f'最晚處理時間：{tdl}')
@@ -780,13 +785,18 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
                 const el = els.find(e => e.textContent.trim() === '轉達行前注意事項' && e.offsetParent !== null);
                 if (el) el.click();
             }""")
-            await page.wait_for_timeout(800)
+            await page.wait_for_timeout(1500)
 
             # 最晚處理時間 - 點燈泡自動帶入
             push('點擊最晚處理時間燈泡...')
             await page.locator("button[class*='k-btn--orange']").first.click()
-            await page.wait_for_timeout(2000)
+            await page.wait_for_timeout(3000)
             tdl = await page.locator("input[placeholder='Select date']").first.input_value()
+            if not tdl:
+                push('燈泡未帶入，重試一次...')
+                await page.locator("button[class*='k-btn--orange']").first.click()
+                await page.wait_for_timeout(3000)
+                tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
                 raise Exception('最晚處理時間燈泡點擊後仍為空，請確認工單分類與商品類型已選擇')
             push(f'最晚處理時間：{tdl}', 'ok')
@@ -1075,14 +1085,19 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
                 const el = els.find(e => e.textContent.trim() === l3 && e.offsetParent !== null);
                 if (el) el.click();
             }""", cat_l3)
-            await page.wait_for_timeout(800)
+            await page.wait_for_timeout(1500)
             push(f'工單分類已選：{cat_l1}→{cat_l2}→{cat_l3}', 'ok')
 
             # ── 最晚處理時間燈泡 ───────────────────────────────
             push('點擊最晚處理時間燈泡...')
             await page.locator("button[class*='k-btn--orange']").first.click()
-            await page.wait_for_timeout(2000)
+            await page.wait_for_timeout(3000)
             tdl = await page.locator("input[placeholder='Select date']").first.input_value()
+            if not tdl:
+                push('燈泡未帶入，重試一次...')
+                await page.locator("button[class*='k-btn--orange']").first.click()
+                await page.wait_for_timeout(3000)
+                tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
                 raise Exception('最晚處理時間燈泡點擊後仍為空')
             push(f'最晚處理時間：{tdl}', 'ok')
