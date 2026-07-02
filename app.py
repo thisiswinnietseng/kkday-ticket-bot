@@ -392,41 +392,43 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
 
             # 選工單分類
             push('選工單分類：訂單異動→額滿售罄→挽單...')
-            # 找到 - Select - 的下拉元素，用 getBoundingClientRect 取座標後點擊
-            box = await page.evaluate("""() => {
-                const selects = document.querySelectorAll('select');
-                for (const s of selects) {
-                    const rect = s.getBoundingClientRect();
-                    if (rect.width > 0) return {x: rect.x + rect.width/2, y: rect.y + rect.height/2, found: true};
-                }
-                // 找帶箭頭的自訂下拉
-                const arrows = document.querySelectorAll('[class*=arrow], [class*=caret]');
-                for (const a of arrows) {
-                    const rect = a.getBoundingClientRect();
-                    if (rect.width > 0) return {x: rect.x + rect.width/2, y: rect.y + rect.height/2, found: true};
-                }
-                return {found: false};
-            }""")
-            push(f'座標：{box}')
-            # 點開工單分類下拉
-            await page.mouse.click(563, 283)
+            # 找工單分類下拉並點開（用 selector，不用硬寫座標）
+            cat_trigger = page.locator("input[placeholder*='分類'], div[class*='ticket-type'], div[class*='category']").first
+            if await cat_trigger.count() > 0:
+                await cat_trigger.click()
+            else:
+                # fallback：找包含「工單分類」文字的容器附近的可點元素
+                await page.evaluate("""() => {
+                    const labels = Array.from(document.querySelectorAll('label, span, div'));
+                    const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
+                    if (lbl) {
+                        const next = lbl.nextElementSibling || lbl.parentElement?.querySelector('input, button, [class*=select]');
+                        if (next) next.click();
+                    }
+                }""")
             await page.wait_for_timeout(800)
             # 點訂單異動
             await page.click("text=訂單異動")
+            push('訂單異動 ✓')
             await page.wait_for_timeout(400)
-            # 點額滿（原本的方式就可以）
+            # 點額滿
             await page.click("text=額滿")
+            push('額滿 ✓')
             await page.wait_for_timeout(400)
-            # 點挽單（用 JS 繞過 pointer event 攔截，用 includes 比對）
-            await page.evaluate("""() => {
+            # 點挽單（用 JS 繞過 pointer event 攔截）
+            found_wantan = await page.evaluate("""() => {
                 const els = Array.from(document.querySelectorAll('*'));
                 const el = els.find(e =>
                     e.children.length === 0 &&
                     e.textContent.trim() === '挽單' &&
                     e.offsetParent !== null
                 );
-                if (el) el.click();
+                if (el) { el.click(); return true; }
+                return false;
             }""")
+            if not found_wantan:
+                raise Exception('找不到「挽單」選項，請確認工單分類下拉是否正確展開')
+            push('挽單 ✓')
             await page.wait_for_timeout(1500)
 
             # 最晚處理時間 - 點燈泡自動帶入
@@ -774,17 +776,30 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
 
             # 選工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
             push('選工單分類：供應商自理訊息→供應商通知→轉達行前注意事項...')
-            await page.mouse.click(563, 283)
+            await page.evaluate("""() => {
+                const labels = Array.from(document.querySelectorAll('label, span, div'));
+                const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
+                if (lbl) {
+                    const next = lbl.nextElementSibling || lbl.parentElement?.querySelector('input, button, [class*=select], [class*=dropdown]');
+                    if (next) next.click();
+                }
+            }""")
             await page.wait_for_timeout(800)
             await page.get_by_text('供應商自理訊息', exact=True).first.click()
+            push('供應商自理訊息 ✓')
             await page.wait_for_timeout(400)
             await page.get_by_text('供應商通知', exact=True).first.click()
+            push('供應商通知 ✓')
             await page.wait_for_timeout(600)
-            await page.evaluate("""() => {
+            found_l3 = await page.evaluate("""() => {
                 const els = Array.from(document.querySelectorAll('div.text-ellipsis, li, span'));
                 const el = els.find(e => e.textContent.trim() === '轉達行前注意事項' && e.offsetParent !== null);
-                if (el) el.click();
+                if (el) { el.click(); return true; }
+                return false;
             }""")
+            if not found_l3:
+                raise Exception('找不到「轉達行前注意事項」選項，請確認工單分類下拉是否正確展開')
+            push('轉達行前注意事項 ✓')
             await page.wait_for_timeout(1500)
 
             # 最晚處理時間 - 點燈泡自動帶入
@@ -1074,17 +1089,29 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
 
             # ── 選工單分類（動態）─────────────────────────────
             push(f'選工單分類：{cat_l1}→{cat_l2}→{cat_l3}...')
-            await page.mouse.click(563, 283)
+            await page.evaluate("""() => {
+                const labels = Array.from(document.querySelectorAll('label, span, div'));
+                const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
+                if (lbl) {
+                    const next = lbl.nextElementSibling || lbl.parentElement?.querySelector('input, button, [class*=select], [class*=dropdown]');
+                    if (next) next.click();
+                }
+            }""")
             await page.wait_for_timeout(800)
             await page.get_by_text(cat_l1, exact=True).first.click()
+            push(f'{cat_l1} ✓')
             await page.wait_for_timeout(400)
             await page.get_by_text(cat_l2, exact=True).first.click()
+            push(f'{cat_l2} ✓')
             await page.wait_for_timeout(600)
-            await page.evaluate("""(l3) => {
+            found_l3 = await page.evaluate("""(l3) => {
                 const els = Array.from(document.querySelectorAll('div.text-ellipsis, li, span'));
                 const el = els.find(e => e.textContent.trim() === l3 && e.offsetParent !== null);
-                if (el) el.click();
+                if (el) { el.click(); return true; }
+                return false;
             }""", cat_l3)
+            if not found_l3:
+                raise Exception(f'找不到「{cat_l3}」選項，請確認工單分類下拉是否正確展開')
             await page.wait_for_timeout(1500)
             push(f'工單分類已選：{cat_l1}→{cat_l2}→{cat_l3}', 'ok')
 
