@@ -20,13 +20,22 @@ if [ -d ".git" ]; then
   echo ""
 fi
 
-# 停掉舊的伺服器
-lsof -ti:5001 | xargs kill -9 2>/dev/null
+# 停掉舊的伺服器（清除 5001–5020 範圍內舊的 process）
+for p in $(seq 5001 5020); do
+  lsof -ti:$p | xargs kill -9 2>/dev/null
+done
 
 # 啟動伺服器
-source venv/bin/activate
+rm -f .port
 venv/bin/python3 app.py &
-sleep 2
+# 等待 app.py 寫出 .port 檔（最多 10 秒）
+for i in $(seq 1 10); do
+  sleep 1
+  [ -f .port ] && break
+done
+
+# 讀取實際使用的 port
+PORT=$(cat .port 2>/dev/null || echo "5001")
 
 # 取得本機 IP
 IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "localhost")
@@ -36,20 +45,20 @@ echo "=============================="
 echo "  ✅ 啟動完成！"
 echo ""
 echo "  本機使用："
-echo "  http://localhost:5001"
+echo "  http://localhost:$PORT"
 echo ""
 echo "  分享給同事（需同網路）："
-echo "  http://$IP:5001"
+echo "  http://$IP:$PORT"
 echo "=============================="
 echo ""
 
 # 複製本機網址到剪貼簿
-echo "http://localhost:5001" | pbcopy
+echo "http://localhost:$PORT" | pbcopy
 echo "  (本機網址已複製到剪貼簿)"
 echo ""
 
 # 開啟瀏覽器
-open "http://localhost:5001"
+open "http://localhost:$PORT"
 
 echo "  關閉此視窗即停止伺服器"
 wait

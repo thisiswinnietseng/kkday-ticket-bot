@@ -1637,5 +1637,17 @@ def queue_status():
     return jsonify({'active': active, 'waiting': _waiting_count, 'max': MAX_CONCURRENT})
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5001))
+    import socket
+    def find_free_port(start=5001):
+        for p in range(start, start + 20):
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind(('', p))
+                    return p
+            except OSError:
+                continue
+        return start
+    port = int(os.environ.get('PORT', 0)) or find_free_port()
+    with open('.port', 'w') as f:
+        f.write(str(port))
     app.run(host='0.0.0.0', port=port, debug=False)

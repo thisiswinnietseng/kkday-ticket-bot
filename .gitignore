@@ -20,3 +20,4 @@ debug.html
 
 # macOS 系統檔
 .DS_Store
+.port
