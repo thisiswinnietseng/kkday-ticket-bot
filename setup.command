@@ -33,7 +33,7 @@ echo "✅ 虛擬環境建立完成"
 # 安裝套件
 echo "⏳ 安裝套件中（約 1-2 分鐘）..."
 venv/bin/pip install --quiet --upgrade pip
-venv/bin/pip install --quiet flask flask-cors playwright python-dotenv requests
+venv/bin/pip install --quiet flask flask-cors playwright python-dotenv requests openpyxl
 echo "✅ 套件安裝完成"
 
 # 安裝瀏覽器
