@@ -308,11 +308,18 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 await popup.wait_for_load_state('networkidle')
                 await popup.wait_for_timeout(1000)
 
+                # 確保語系為繁體中文(台灣)，避免外國同事預設語系不同導致後續點擊失敗
+                lang_sel = popup.locator('select')
+                if await lang_sel.count() > 0:
+                    await lang_sel.select_option(label='繁體中文(台灣)')
+                    await popup.wait_for_timeout(300)
+
                 await popup.fill("input[type='email']", username)
                 await popup.wait_for_timeout(500)
                 await popup.fill("input[type='password']", password)
                 await popup.wait_for_timeout(500)
-                await popup.click("button:has-text('登入')")
+                submit = popup.locator("button[type='submit'], button:has-text('登入'), button:has-text('Log In'), button:has-text('Sign In')")
+                await submit.first.click()
                 await popup.wait_for_load_state('networkidle')
                 await page.wait_for_timeout(6000)
                 await page.goto('https://be2.kkday.com/v3/crm/dashboard', wait_until='networkidle', timeout=30000)
@@ -690,11 +697,19 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
                 popup = await popup_info.value
                 await popup.wait_for_load_state('networkidle')
                 await popup.wait_for_timeout(1000)
+
+                # 確保語系為繁體中文(台灣)
+                lang_sel = popup.locator('select')
+                if await lang_sel.count() > 0:
+                    await lang_sel.select_option(label='繁體中文(台灣)')
+                    await popup.wait_for_timeout(300)
+
                 await popup.fill("input[type=\'email\']", username)
                 await popup.wait_for_timeout(500)
                 await popup.fill("input[type=\'password\']", password)
                 await popup.wait_for_timeout(500)
-                await popup.click("button:has-text(\'登入\')")
+                submit = popup.locator("button[type='submit'], button:has-text('登入'), button:has-text('Log In'), button:has-text('Sign In')")
+                await submit.first.click()
                 await popup.wait_for_load_state('networkidle')
                 await page.wait_for_timeout(6000)
                 await page.goto('https://be2.kkday.com/v3/crm/dashboard', wait_until='networkidle', timeout=30000)
@@ -970,11 +985,19 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
                 popup = await popup_info.value
                 await popup.wait_for_load_state('networkidle')
                 await popup.wait_for_timeout(1000)
+
+                # 確保語系為繁體中文(台灣)
+                lang_sel = popup.locator('select')
+                if await lang_sel.count() > 0:
+                    await lang_sel.select_option(label='繁體中文(台灣)')
+                    await popup.wait_for_timeout(300)
+
                 await popup.fill("input[type='email']", username)
                 await popup.wait_for_timeout(500)
                 await popup.fill("input[type='password']", password)
                 await popup.wait_for_timeout(500)
-                await popup.click("button:has-text('登入')")
+                submit = popup.locator("button[type='submit'], button:has-text('登入'), button:has-text('Log In'), button:has-text('Sign In')")
+                await submit.first.click()
                 await popup.wait_for_load_state('networkidle')
                 await page.wait_for_timeout(6000)
                 await page.goto('https://be2.kkday.com/v3/crm/dashboard', wait_until='networkidle', timeout=30000)

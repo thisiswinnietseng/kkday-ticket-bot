@@ -84,6 +84,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft
 .topbar-stop:hover { background: rgba(239,68,68,.12); }
 .topbar-help { display: flex; align-items: center; gap: 5px; background: transparent; border: 1px solid rgba(255,255,255,.22); color: rgba(255,255,255,.7); border-radius: 100px; padding: 4px 12px; font-size: 12px; font-family: inherit; cursor: pointer; transition: background .15s, color .15s; }
 .topbar-help:hover { background: rgba(255,255,255,.1); color: #fff; }
+.topbar-lang { display: flex; align-items: center; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); color: #fff; border-radius: 100px; padding: 3px 11px; font-size: 11px; font-weight: 700; font-family: inherit; cursor: pointer; letter-spacing: .05em; transition: background .15s; }
+.topbar-lang:hover { background: rgba(255,255,255,.2); }
 
 /* ── 說明書 Modal ── */
 .help-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.48); z-index: 9000; align-items: flex-start; justify-content: center; padding: 32px 16px 32px; overflow-y: auto; }
@@ -305,165 +307,166 @@ textarea::placeholder { color: var(--text3); }
 <div class="topbar">
   <div class="topbar-logo">
     <div class="topbar-logomark">KKday</div>
-    <span class="topbar-title">工單自動化</span>
+    <span class="topbar-title" data-i18n="title">工單自動化</span>
   </div>
   <div class="topbar-spacer"></div>
   <div class="topbar-queue" id="queue-status"><span id="queue-text"></span></div>
-  <button class="topbar-stop" id="stop-btn-global" onclick="stopRun()">⏹ 停止</button>
-  <button class="topbar-help" onclick="openHelp()">？ 使用說明</button>
-  <div class="topbar-status"><div class="status-dot"></div><span id="srv">連線中...</span></div>
+  <button class="topbar-stop" id="stop-btn-global" onclick="stopRun()" data-i18n="stop">⏹ 停止</button>
+  <button class="topbar-help" onclick="openHelp()" data-i18n="help-btn">？ 使用說明</button>
+  <button class="topbar-lang" id="lang-btn" onclick="toggleLang()">EN</button>
+  <div class="topbar-status"><div class="status-dot"></div><span id="srv" data-i18n="srv.connecting">連線中...</span></div>
 </div>
 
 <div class="mode-tabs">
-  <div class="mode-tab active wantan" id="tab-wantan" onclick="switchMode('wantan')">額滿挽單</div>
-  <div class="mode-tab general" id="tab-general" onclick="switchMode('general')">一般工單</div>
-  <div class="mode-tab notify" id="tab-notify" onclick="switchMode('notify')">對客通知</div>
+  <div class="mode-tab active wantan" id="tab-wantan" onclick="switchMode('wantan')" data-i18n="tab.wantan">額滿挽單</div>
+  <div class="mode-tab general" id="tab-general" onclick="switchMode('general')" data-i18n="tab.general">一般工單</div>
+  <div class="mode-tab notify" id="tab-notify" onclick="switchMode('notify')" data-i18n="tab.notify">對客通知</div>
 </div>
 
 <div class="main">
   <div class="left">
 
     <!-- 帳號設定 -->
-    <div class="section-label">帳號設定</div>
+    <div class="section-label" data-i18n="acct.title">帳號設定</div>
     <div class="card"><div class="card-body">
       <div class="field-wrap">
-        <label>BE2 帳號</label>
+        <label data-i18n="acct.user">BE2 帳號</label>
         <input type="email" id="be2-user" placeholder="your@kkday.com" autocomplete="username">
       </div>
       <div class="field-wrap">
-        <label>BE2 密碼</label>
+        <label data-i18n="acct.pass">BE2 密碼</label>
         <div class="pw-wrap">
           <input type="password" id="be2-pass" placeholder="••••••••" autocomplete="current-password">
-          <button type="button" id="pw-toggle" class="pw-toggle" onclick="togglePw()">顯示</button>
+          <button type="button" id="pw-toggle" class="pw-toggle" onclick="togglePw()" data-i18n="acct.show">顯示</button>
         </div>
       </div>
       <div class="field-wrap">
-        <label>你的名字（顯示在紀錄上）</label>
-        <input type="text" id="be2-name" placeholder="例：Winnie" autocomplete="name">
+        <label data-i18n="acct.name">你的名字（顯示在紀錄上）</label>
+        <input type="text" id="be2-name" data-i18n-placeholder="ph.name" placeholder="例：Winnie" autocomplete="name">
       </div>
       <label class="remember-label">
         <input type="checkbox" id="remember-me" onchange="toggleRemember()">
-        記住帳號與名字（僅存在此瀏覽器）
+        <span data-i18n="acct.remember">記住帳號與名字（僅存在此瀏覽器）</span>
       </label>
     </div></div>
 
     <!-- 挽單表單 -->
     <div id="form-wantan">
-      <div class="section-label">訂單資訊</div>
+      <div class="section-label" data-i18n="order.title">訂單資訊</div>
       <div class="card"><div class="card-body">
         <div class="order-pair">
           <div class="field-wrap">
-            <label>KKday 訂單編號</label>
+            <label data-i18n="order.kkday">KKday 訂單編號</label>
             <textarea id="order-ids" placeholder="26KK291040054&#10;26KK291040055"></textarea>
           </div>
           <div class="field-wrap">
-            <label>供應商編號</label>
-            <textarea id="supplier-ids" placeholder="每行對應一筆供應商編號"></textarea>
+            <label data-i18n="order.supplier">供應商編號</label>
+            <textarea id="supplier-ids" data-i18n-placeholder="ph.supplier" placeholder="每行對應一筆供應商編號"></textarea>
           </div>
         </div>
-        <div class="order-pair-hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
+        <div class="order-pair-hint" data-i18n="order.hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
         <div class="field-wrap">
-          <label>可改類型</label>
+          <label data-i18n="wantan.type">可改類型</label>
           <div class="type-toggle">
             <label class="type-opt sel-page" id="opt-page" onclick="selectType('page')">
               <input type="radio" name="follow-type" value="page" checked onchange="toggleOpDates()">
               <div class="type-radio"><div class="type-radio-dot"></div></div>
-              <span class="type-label">依商品頁面</span>
+              <span class="type-label" data-i18n="wantan.bypage">依商品頁面</span>
             </label>
             <label class="type-opt" id="opt-op" onclick="selectType('op')">
               <input type="radio" name="follow-type" value="op" onchange="toggleOpDates()">
               <div class="type-radio"><div class="type-radio-dot"></div></div>
-              <span class="type-label">依 OP 提供</span>
+              <span class="type-label" data-i18n="wantan.byop">依 OP 提供</span>
             </label>
           </div>
         </div>
         <div id="op-dates-wrap" style="display:none">
           <div class="field-wrap" style="margin-top:8px">
-            <label>OP 可改場次</label>
+            <label data-i18n="wantan.opdates">OP 可改場次</label>
             <textarea id="op-dates" placeholder="2026/06/10 10:00&#10;2026/06/11 10:00" style="min-height:72px"></textarea>
           </div>
         </div>
         <button class="btn-run" id="run-btn" onclick="runFlow()">
           <div class="spinner"></div>
-          <span class="btn-label">▶ 開始自動建立工單</span>
+          <span class="btn-label" data-i18n="wantan.btn">▶ 開始自動建立工單</span>
         </button>
       </div></div>
     </div>
 
     <!-- 行前通知表單 -->
     <div id="form-notify" style="display:none">
-      <div class="section-label">訂單資訊</div>
+      <div class="section-label" data-i18n="order.title">訂單資訊</div>
       <div class="card"><div class="card-body">
         <div class="order-pair">
           <div class="field-wrap">
-            <label>KKday 訂單編號</label>
+            <label data-i18n="order.kkday">KKday 訂單編號</label>
             <textarea id="notify-order-ids" placeholder="26KK291040054&#10;26KK291040055"></textarea>
           </div>
           <div class="field-wrap">
-            <label>供應商編號</label>
-            <textarea id="notify-supplier-ids" placeholder="每行對應一筆供應商編號"></textarea>
+            <label data-i18n="order.supplier">供應商編號</label>
+            <textarea id="notify-supplier-ids" data-i18n-placeholder="ph.supplier" placeholder="每行對應一筆供應商編號"></textarea>
           </div>
         </div>
-        <div class="order-pair-hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
+        <div class="order-pair-hint" data-i18n="order.hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
         <div class="field-wrap">
-          <label>對客通知內容 <span style="font-weight:400;color:var(--text3)">（請輸入中英版本 or 英文）</span></label>
-          <textarea id="notify-content" placeholder="填入要通知的內容，例如：&#10;請注意集合時間為 09:00，集合地點：XXX&#10;Please note the meeting time is 09:00 at XXX" style="min-height:100px"></textarea>
+          <label data-i18n-html="notify.content-label">對客通知內容 <span style="font-weight:400;color:var(--text3)">（請輸入中英版本 or 英文）</span></label>
+          <textarea id="notify-content" data-i18n-placeholder="ph.notif" placeholder="填入要通知的內容，例如：&#10;請注意集合時間為 09:00，集合地點：XXX&#10;Please note the meeting time is 09:00 at XXX" style="min-height:100px"></textarea>
         </div>
         <button class="btn-run" id="notify-btn" onclick="runNotification()">
           <div class="spinner"></div>
-          <span class="btn-label">▶ 開始對客通知</span>
+          <span class="btn-label" data-i18n="notify.btn">▶ 開始對客通知</span>
         </button>
       </div></div>
 
       <!-- 批次上傳 -->
-      <div class="batch-divider"><span class="batch-divider-label">批次上傳（各單不同內容）</span></div>
+      <div class="batch-divider"><span class="batch-divider-label" data-i18n="batch.title">批次上傳（各單不同內容）</span></div>
       <div class="card"><div class="card-body">
-        <ol style="font-size:12px;color:var(--text2);line-height:2;padding-left:16px;margin-bottom:12px">
-          <li>點擊「下載範本」，依格式填入訂單編號與各單通知內容</li>
-          <li>點擊「選擇 Excel」上傳填好的檔案</li>
-          <li>確認解析筆數後，點擊「開始批次發送」</li>
+        <ol id="batch-steps-list" style="font-size:12px;color:var(--text2);line-height:2;padding-left:16px;margin-bottom:12px">
+          <li data-i18n="batch.step1">點擊「下載範本」，依格式填入訂單編號與各單通知內容</li>
+          <li data-i18n="batch.step2">點擊「選擇 Excel」上傳填好的檔案</li>
+          <li data-i18n="batch.step3">確認解析筆數後，點擊「開始批次發送」</li>
         </ol>
         <div class="batch-actions">
-          <button class="btn-sm btn-sm-outline" onclick="downloadNotifTemplate()">⬇ 下載範本</button>
-          <label class="btn-sm btn-sm-file" for="batch-file-input" style="cursor:pointer">📂 選擇 Excel</label>
+          <button class="btn-sm btn-sm-outline" onclick="downloadNotifTemplate()" data-i18n="batch.download">⬇ 下載範本</button>
+          <label class="btn-sm btn-sm-file" for="batch-file-input" style="cursor:pointer" data-i18n="batch.select">📂 選擇 Excel</label>
           <input type="file" id="batch-file-input" accept=".xlsx,.xls" style="display:none" onchange="onBatchFileSelected(this)">
-          <span class="batch-file-info" id="batch-file-info">尚未選擇檔案</span>
+          <span class="batch-file-info" id="batch-file-info" data-i18n="batch.nofile">尚未選擇檔案</span>
         </div>
         <div class="batch-preview" id="batch-preview">
-          ✅ 已解析 <strong id="batch-count">0</strong> 筆資料，工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
+          ✅ <span data-i18n="batch.parsed-pre">已解析</span> <strong id="batch-count">0</strong> <span data-i18n="batch.parsed-post">筆資料，工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項</span>
         </div>
         <button class="btn-run" id="batch-btn" onclick="runBatch()" disabled>
           <div class="spinner"></div>
-          <span class="btn-label">▶ 開始批次發送</span>
+          <span class="btn-label" data-i18n="batch.btn">▶ 開始批次發送</span>
         </button>
       </div></div>
     </div>
 
     <!-- 一般工單表單 -->
     <div id="form-general" style="display:none">
-      <div class="section-label">訂單資訊</div>
+      <div class="section-label" data-i18n="order.title">訂單資訊</div>
       <div class="card"><div class="card-body">
         <div class="order-pair">
           <div class="field-wrap">
-            <label>KKday 訂單編號</label>
+            <label data-i18n="order.kkday">KKday 訂單編號</label>
             <textarea id="gen-order-ids" placeholder="26KK291040054&#10;26KK291040055"></textarea>
           </div>
           <div class="field-wrap">
-            <label>供應商編號</label>
-            <textarea id="gen-supplier-ids" placeholder="每行對應一筆供應商編號"></textarea>
+            <label data-i18n="order.supplier">供應商編號</label>
+            <textarea id="gen-supplier-ids" data-i18n-placeholder="ph.supplier" placeholder="每行對應一筆供應商編號"></textarea>
           </div>
         </div>
-        <div class="order-pair-hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
-        <div class="card-section-title">工單分類</div>
+        <div class="order-pair-hint" data-i18n="order.hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
+        <div class="card-section-title" data-i18n="gen.category">工單分類</div>
         <div class="field-wrap">
           <div class="cat-picker" id="cat-picker">
             <button type="button" class="cat-trigger" id="cat-trigger" onclick="toggleCatPicker(event)">
-              <span class="cat-trigger-text placeholder" id="cat-display">— 請選擇分類 —</span>
+              <span class="cat-trigger-text placeholder" id="cat-display" data-i18n="cat.placeholder">— 請選擇分類 —</span>
               <span class="cat-trigger-arrow">▼</span>
             </button>
             <div class="cat-dropdown" id="cat-dropdown" style="display:none">
               <div class="cat-search">
-                <input type="text" id="cat-search-input" placeholder="搜尋分類..." oninput="filterCatList(this.value)" autocomplete="off">
+                <input type="text" id="cat-search-input" data-i18n-placeholder="ph.cat-search" placeholder="搜尋分類..." oninput="filterCatList(this.value)" autocomplete="off">
               </div>
               <div class="cat-list" id="cat-list"></div>
             </div>
@@ -472,14 +475,14 @@ textarea::placeholder { color: var(--text3); }
           <input type="hidden" id="gen-cat-l2" value="">
           <input type="hidden" id="gen-cat-l3" value="">
         </div>
-        <div class="card-section-title">需請客服協助內容</div>
+        <div class="card-section-title" data-i18n="gen.content-title">需請客服協助內容</div>
         <div class="field-wrap">
-          <label style="font-weight:400;color:var(--text3);font-size:11px">通知主旨會自動帶入工單分類路徑</label>
-          <textarea id="gen-notif-content" placeholder="填入通知內容（請輸入中英版本 or 英文）&#10;Please enter the notification content in Chinese/English." style="min-height:100px"></textarea>
+          <label style="font-weight:400;color:var(--text3);font-size:11px" data-i18n="gen.subject-hint">通知主旨會自動帶入工單分類路徑</label>
+          <textarea id="gen-notif-content" data-i18n-placeholder="ph.gen-content" placeholder="填入通知內容（請輸入中英版本 or 英文）&#10;Please enter the notification content in Chinese/English." style="min-height:100px"></textarea>
         </div>
         <button class="btn-run" id="gen-btn" onclick="runGeneral()">
           <div class="spinner"></div>
-          <span class="btn-label">▶ 開始建立工單</span>
+          <span class="btn-label" data-i18n="gen.btn">▶ 開始建立工單</span>
         </button>
       </div></div>
     </div>
@@ -488,90 +491,90 @@ textarea::placeholder { color: var(--text3); }
 
   <div class="right">
     <div class="results-header-row">
-      <div class="section-label">執行結果</div>
-      <button class="btn-export" id="export-btn" onclick="exportResults()" style="display:none">⬇ 匯出 Excel</button>
+      <div class="section-label" data-i18n="results.title">執行結果</div>
+      <button class="btn-export" id="export-btn" onclick="exportResults()" style="display:none" data-i18n="btn.export">⬇ 匯出 Excel</button>
     </div>
     <div id="results-wantan">
-      <div class="result-empty"><div class="icon">📋</div><div>輸入訂單編號後點擊執行<br>這裡會顯示每筆訂單的處理進度</div></div>
+      <div class="result-empty"><div class="icon">📋</div><div><span data-i18n="results.empty1">輸入訂單編號後點擊執行</span><br><span data-i18n="results.empty2">這裡會顯示每筆訂單的處理進度</span></div></div>
     </div>
     <div id="results-notify" style="display:none">
-      <div class="result-empty"><div class="icon">📋</div><div>輸入訂單編號後點擊執行<br>這裡會顯示每筆訂單的處理進度</div></div>
+      <div class="result-empty"><div class="icon">📋</div><div><span data-i18n="results.empty1">輸入訂單編號後點擊執行</span><br><span data-i18n="results.empty2">這裡會顯示每筆訂單的處理進度</span></div></div>
     </div>
     <div id="results-general" style="display:none">
-      <div class="result-empty"><div class="icon">📋</div><div>輸入訂單編號後點擊執行<br>這裡會顯示每筆訂單的處理進度</div></div>
+      <div class="result-empty"><div class="icon">📋</div><div><span data-i18n="results.empty1">輸入訂單編號後點擊執行</span><br><span data-i18n="results.empty2">這裡會顯示每筆訂單的處理進度</span></div></div>
     </div>
   </div>
 </div>
 
 <!-- Steps (full width) -->
 <div class="steps-outer">
-  <div class="section-label">自動化步驟</div>
+  <div class="section-label" data-i18n="steps.title">自動化步驟</div>
   <div id="steps-wantan">
     <div class="steps-strip steps-wantan">
-      <div class="step-node"><div class="step-num">1</div><div class="step-text">新增工單</div></div>
+      <div class="step-node"><div class="step-num">1</div><div class="step-text" data-i18n-html="step.w.1">新增工單</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">2</div><div class="step-text">燈泡帶入<br>最晚處理</div></div>
+      <div class="step-node"><div class="step-num">2</div><div class="step-text" data-i18n-html="step.w.2">燈泡帶入<br>最晚處理</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">3</div><div class="step-text">開始處理</div></div>
+      <div class="step-node"><div class="step-num">3</div><div class="step-text" data-i18n-html="step.w.3">開始處理</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">4</div><div class="step-text">後拋<br>額滿挽單</div></div>
+      <div class="step-node"><div class="step-num">4</div><div class="step-text" data-i18n-html="step.w.4">後拋<br>額滿挽單</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">5</div><div class="step-text">燈泡帶入<br>後拋截止</div></div>
+      <div class="step-node"><div class="step-num">5</div><div class="step-text" data-i18n-html="step.w.5">燈泡帶入<br>後拋截止</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">6</div><div class="step-text">偵測語系<br>填通知</div></div>
+      <div class="step-node"><div class="step-num">6</div><div class="step-text" data-i18n-html="step.w.6">偵測語系<br>填通知</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">7</div><div class="step-text">確認完成</div></div>
+      <div class="step-node"><div class="step-num">7</div><div class="step-text" data-i18n-html="step.w.7">確認完成</div></div>
     </div>
   </div>
   <div id="steps-notify" style="display:none">
     <div class="steps-strip steps-notify">
-      <div class="step-node"><div class="step-num">1</div><div class="step-text">確認<br>已處理</div></div>
+      <div class="step-node"><div class="step-num">1</div><div class="step-text" data-i18n-html="step.n.1">確認<br>已處理</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">2</div><div class="step-text">新增工單</div></div>
+      <div class="step-node"><div class="step-num">2</div><div class="step-text" data-i18n-html="step.n.2">新增工單</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">3</div><div class="step-text">燈泡帶入<br>最晚處理</div></div>
+      <div class="step-node"><div class="step-num">3</div><div class="step-text" data-i18n-html="step.n.3">燈泡帶入<br>最晚處理</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">4</div><div class="step-text">開始處理</div></div>
+      <div class="step-node"><div class="step-num">4</div><div class="step-text" data-i18n-html="step.n.4">開始處理</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">5</div><div class="step-text">對客通知<br>填主旨內容</div></div>
+      <div class="step-node"><div class="step-num">5</div><div class="step-text" data-i18n-html="step.n.5">對客通知<br>填主旨內容</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">6</div><div class="step-text">確認發送</div></div>
+      <div class="step-node"><div class="step-num">6</div><div class="step-text" data-i18n-html="step.n.6">確認發送</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">7</div><div class="step-text">關閉工單</div></div>
+      <div class="step-node"><div class="step-num">7</div><div class="step-text" data-i18n-html="step.n.7">關閉工單</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">8</div><div class="step-text">訂單備註</div></div>
+      <div class="step-node"><div class="step-num">8</div><div class="step-text" data-i18n-html="step.n.8">訂單備註</div></div>
     </div>
   </div>
   <div id="steps-general" style="display:none">
     <div class="steps-strip steps-general">
-      <div class="step-node"><div class="step-num">1</div><div class="step-text">登入<br>取得日期</div></div>
+      <div class="step-node"><div class="step-num">1</div><div class="step-text" data-i18n-html="step.g.1">登入<br>取得日期</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">2</div><div class="step-text">前往<br>客服操作台</div></div>
+      <div class="step-node"><div class="step-num">2</div><div class="step-text" data-i18n-html="step.g.2">前往<br>客服操作台</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">3</div><div class="step-text">新增工單<br>填訂單編號</div></div>
+      <div class="step-node"><div class="step-num">3</div><div class="step-text" data-i18n-html="step.g.3">新增工單<br>填訂單編號</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">4</div><div class="step-text">選工單分類<br>（動態）</div></div>
+      <div class="step-node"><div class="step-num">4</div><div class="step-text" data-i18n-html="step.g.4">選工單分類<br>（動態）</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">5</div><div class="step-text">燈泡帶入<br>最晚處理</div></div>
+      <div class="step-node"><div class="step-num">5</div><div class="step-text" data-i18n-html="step.g.5">燈泡帶入<br>最晚處理</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">6</div><div class="step-text">確認建立<br>開始處理</div></div>
+      <div class="step-node"><div class="step-num">6</div><div class="step-text" data-i18n-html="step.g.6">確認建立<br>開始處理</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">7</div><div class="step-text">後拋<br>填備註</div></div>
+      <div class="step-node"><div class="step-num">7</div><div class="step-text" data-i18n-html="step.g.7">後拋<br>填備註</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">8</div><div class="step-text">填通知<br>主旨＋內容</div></div>
+      <div class="step-node"><div class="step-num">8</div><div class="step-text" data-i18n-html="step.g.8">填通知<br>主旨＋內容</div></div>
       <div class="step-arrow">→</div>
-      <div class="step-node"><div class="step-num">9</div><div class="step-text">訂單備註<br>重置進度</div></div>
+      <div class="step-node"><div class="step-num">9</div><div class="step-text" data-i18n-html="step.g.9">訂單備註<br>重置進度</div></div>
     </div>
   </div>
 </div>
 
 <!-- Stats -->
 <div class="stats-wrap">
-  <div class="stats-group-label">今日</div>
+  <div class="stats-group-label" data-i18n="stats.today">今日</div>
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">總筆數</div></div>
-    <div class="stat-card"><div class="stat-num green" id="stat-success">—</div><div class="stat-label">成功</div></div>
-    <div class="stat-card"><div class="stat-num red" id="stat-fail">—</div><div class="stat-label">失敗</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label" data-i18n="stats.total">總筆數</div></div>
+    <div class="stat-card"><div class="stat-num green" id="stat-success">—</div><div class="stat-label" data-i18n="stats.success">成功</div></div>
+    <div class="stat-card"><div class="stat-num red" id="stat-fail">—</div><div class="stat-label" data-i18n="stats.fail">失敗</div></div>
   </div>
   <div class="week-nav">
     <button class="week-btn" onclick="changeWeek(-1)">&#8592;</button>
@@ -579,9 +582,9 @@ textarea::placeholder { color: var(--text3); }
     <button class="week-btn" id="week-next" onclick="changeWeek(1)" disabled>&#8594;</button>
   </div>
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-num" id="stat-week-total">—</div><div class="stat-label">總筆數</div></div>
-    <div class="stat-card"><div class="stat-num green" id="stat-week-success">—</div><div class="stat-label">成功</div></div>
-    <div class="stat-card"><div class="stat-num red" id="stat-week-fail">—</div><div class="stat-label">失敗</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-week-total">—</div><div class="stat-label" data-i18n="stats.total">總筆數</div></div>
+    <div class="stat-card"><div class="stat-num green" id="stat-week-success">—</div><div class="stat-label" data-i18n="stats.success">成功</div></div>
+    <div class="stat-card"><div class="stat-num red" id="stat-week-fail">—</div><div class="stat-label" data-i18n="stats.fail">失敗</div></div>
   </div>
   <div class="daily-row" id="daily-row"></div>
 </div>
@@ -590,8 +593,8 @@ textarea::placeholder { color: var(--text3); }
 <div class="history-wrap">
   <div class="history-header">
     <div class="section-label" id="history-label">挽單紀錄</div>
-    <button class="btn-export" onclick="exportCSV()">⬇ 匯出 Excel</button>
-    <button class="btn-history-toggle" id="history-toggle-btn" onclick="toggleHistory()">▶ 展開</button>
+    <button class="btn-export" onclick="exportCSV()" data-i18n="btn.export-history">⬇ 匯出 Excel</button>
+    <button class="btn-history-toggle" id="history-toggle-btn" onclick="toggleHistory()" data-i18n="history.expand">▶ 展開</button>
   </div>
   <div id="history-table-wrap" style="display:none">
   <div class="card">
@@ -599,12 +602,12 @@ textarea::placeholder { color: var(--text3); }
     <table class="history-table">
       <thead>
         <tr>
-          <th>時間</th><th>處理人</th><th>訂單編號</th><th>工單 ID</th>
-          <th>類型</th><th>最晚處理</th><th>後拋截止</th><th>狀態</th>
+          <th data-i18n="th.time">時間</th><th data-i18n="th.operator">處理人</th><th data-i18n="th.order">訂單編號</th><th data-i18n="th.ticket">工單 ID</th>
+          <th data-i18n="th.type">類型</th><th data-i18n="th.deadline">最晚處理</th><th data-i18n="th.follow">後拋截止</th><th data-i18n="th.status">狀態</th>
         </tr>
       </thead>
       <tbody id="history-body">
-        <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem">尚無紀錄</td></tr>
+        <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem" data-i18n="history.empty">尚無紀錄</td></tr>
       </tbody>
     </table>
     </div>
@@ -624,13 +627,13 @@ function toggleOpDates(){
   document.getElementById('op-dates-wrap').style.display=sel==='op'?'block':'none';
 }
 async function checkHealth(){
-  try{const r=await fetch('/api/health');const d=await r.json();document.getElementById('srv').textContent=d.ok?'服務運作中':'無法連線';}
-  catch{document.getElementById('srv').textContent='無法連線';document.querySelector('.status-dot').style.background='#F87171';}
+  try{const r=await fetch('/api/health');const d=await r.json();document.getElementById('srv').textContent=d.ok?t('srv.ok'):t('srv.err');}
+  catch{document.getElementById('srv').textContent=t('srv.err');document.querySelector('.status-dot').style.background='#F87171';}
   setInterval(async()=>{
     try{
       const r=await fetch('/api/queue_status');const d=await r.json();
       const qs=document.getElementById('queue-status');const qt=document.getElementById('queue-text');
-      if(d.active>0||d.waiting>0){qs.style.display='flex';qt.textContent=`⚙️ 執行中 ${d.active}／${d.max}${d.waiting>0?`　⏳ 等候 ${d.waiting} 筆`:''}`;
+      if(d.active>0||d.waiting>0){qs.style.display='flex';qt.textContent=`${t('queue.running')} ${d.active}／${d.max}${d.waiting>0?`　⏳ ${t('queue.waiting')} ${d.waiting}${t('queue.waiting-unit') ? ' '+t('queue.waiting-unit') : ''}`:''}`;
       }else{qs.style.display='none';}
     }catch{}
   },3000);
@@ -643,7 +646,7 @@ function toggleRemember(){
 }
 function togglePw(){
   const inp=document.getElementById('be2-pass');const btn=document.getElementById('pw-toggle');
-  if(inp.type==='password'){inp.type='text';btn.textContent='隱藏';}else{inp.type='password';btn.textContent='顯示';}
+  if(inp.type==='password'){inp.type='text';btn.textContent=t('pw.hide');}else{inp.type='password';btn.textContent=t('pw.show');}
 }
 function initAccount(){
   if(localStorage.getItem('remember_me')==='1'){
@@ -669,7 +672,7 @@ async function loadStats(){
     document.getElementById('stat-week-fail').textContent=d.week_fail;
     const ws=d.week_start?d.week_start.slice(5).replace('-','/'):'-';
     const we=d.week_end?d.week_end.slice(5).replace('-','/'):'-';
-    document.getElementById('week-label').textContent=weekOffset===0?`本週 (${ws}–${we})`:`第 ${weekOffset} 週 (${ws}–${we})`;
+    document.getElementById('week-label').textContent=weekOffset===0?`${t('week.this')} (${ws}–${we})`:`${t('week.nth').replace('%n',-weekOffset)} (${ws}–${we})`;
     const todayStr=new Date().toISOString().slice(0,10);
     const dayNames=['一','二','三','四','五','六','日'];
     let html='';
@@ -682,7 +685,7 @@ async function loadStats(){
       const mmdd=dateStr.slice(5).replace('-','/');
       html+=`<div class="daily-cell${isToday?' today':''}"><div class="daily-day">${dayNames[i]} <span style="font-weight:400">${mmdd}</span></div><div class="daily-count">${info.total}</div><div class="daily-sub">${info.success}✓${info.fail>0?' '+info.fail+'✗':''}</div></div>`;
     }
-    document.getElementById('daily-row').innerHTML=html||'<div style="color:var(--text3);font-size:12px">本週尚無資料</div>';
+    document.getElementById('daily-row').innerHTML=html||`<div style="color:var(--text3);font-size:12px">${t('week.nodata')}</div>`;
   }catch{}
 }
 async function loadHistory(){
@@ -709,17 +712,17 @@ async function loadHistory(){
 function buildResultCard(key, label){
   const c=document.createElement('div');
   c.className='result-card';c.id='card-'+key;
-  c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${label}</div><div class="result-tag" style="background:var(--amber-light);color:#92400E">處理中</div></div><div class="progress-log" id="log-${key}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">等待執行...</div></div></div>`;
+  c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${label}</div><div class="result-tag" style="background:var(--amber-light);color:#92400E">${t('card.processing')}</div></div><div class="progress-log" id="log-${key}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">${t('card.waiting')}</div></div></div>`;
   return c;
 }
 function fillCard(card, r, logId){
   const hdr=card.querySelector('.result-header');
   hdr.className='result-header '+(r.success?'success':'error');
-  hdr.innerHTML=`<div class="result-header-icon">${r.success?'✅':'❌'}</div><div class="result-header-title">${r.order_id||'—'}</div>${r.success?`<div class="result-tag ${r.is_urgent?'urgent':'normal'}">${r.is_urgent?'急單':'一般單'}</div>`:'<div class="result-tag" style="background:#FEE2E2;color:#991B1B">失敗</div>'}`;
+  hdr.innerHTML=`<div class="result-header-icon">${r.success?'✅':'❌'}</div><div class="result-header-title">${r.order_id||'—'}</div>${r.success?`<div class="result-tag ${r.is_urgent?'urgent':'normal'}">${r.is_urgent?t('card.urgent'):t('card.normal')}</div>`:`<div class="result-tag" style="background:#FEE2E2;color:#991B1B">${t('hist.fail')}</div>`}`;
   if(r.success){
     const cols=r.follow_deadline?
-      `<div class="summary-cell"><div class="summary-cell-label">工單 ID</div><div class="summary-cell-value">#${r.ticket_id}</div></div><div class="summary-cell"><div class="summary-cell-label">最晚處理</div><div class="summary-cell-value">${r.ticket_deadline}</div></div><div class="summary-cell"><div class="summary-cell-label">後拋截止</div><div class="summary-cell-value">${r.follow_deadline}</div></div>`:
-      `<div class="summary-cell"><div class="summary-cell-label">工單 ID</div><div class="summary-cell-value">#${r.ticket_id}</div></div><div class="summary-cell"><div class="summary-cell-label">最晚處理</div><div class="summary-cell-value">${r.ticket_deadline}</div></div>`;
+      `<div class="summary-cell"><div class="summary-cell-label">${t('th.ticket')}</div><div class="summary-cell-value">#${r.ticket_id}</div></div><div class="summary-cell"><div class="summary-cell-label">${t('th.deadline')}</div><div class="summary-cell-value">${r.ticket_deadline}</div></div><div class="summary-cell"><div class="summary-cell-label">${t('th.follow')}</div><div class="summary-cell-value">${r.follow_deadline}</div></div>`:
+      `<div class="summary-cell"><div class="summary-cell-label">${t('th.ticket')}</div><div class="summary-cell-value">#${r.ticket_id}</div></div><div class="summary-cell"><div class="summary-cell-label">${t('th.deadline')}</div><div class="summary-cell-value">${r.ticket_deadline}</div></div>`;
     card.querySelector('.progress-log').insertAdjacentHTML('beforebegin',`<div class="summary-grid" style="grid-template-columns:${r.follow_deadline?'repeat(3,1fr)':'repeat(2,1fr)'}">${cols}</div>`);
   }
   const lg=card.querySelector('#'+logId);lg.innerHTML='';
@@ -732,8 +735,8 @@ function fillCard(card, r, logId){
   lg.style.display='none';
   const tog=document.createElement('button');
   tog.className='log-toggle';
-  tog.textContent='展開詳情 ▾';
-  tog.onclick=()=>{const open=lg.style.display!=='none';lg.style.display=open?'none':'';tog.textContent=open?'展開詳情 ▾':'收起詳情 ▴';};
+  tog.textContent=t('card.expand');
+  tog.onclick=()=>{const open=lg.style.display!=='none';lg.style.display=open?'none':'';tog.textContent=open?t('card.expand'):t('card.collapse');};
   card.appendChild(tog);
 }
 
@@ -767,7 +770,7 @@ async function runFlow(){
     _tabResults.wantan=data.results;document.getElementById('export-btn').style.display='';
     loadStats();loadHistory();
   }catch(e){
-    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">連線失敗</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">無法連線伺服器：${e.message}</div></div></div></div>`;
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title"${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg"${t('conn.fail')}${e.message}</div></div></div></div>`;
   }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
 }
 
@@ -835,7 +838,7 @@ async function runNotification(){
     const oid=orderIds[i]||'';const sid=supplierIds[i]||'';
     const label=oid||(sid?'供應商:'+sid:'');
     const c=document.createElement('div');c.className='result-card';c.id='ncard-'+i;
-    c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${label}</div><div class="result-tag" style="background:var(--amber-light);color:#92400E">處理中</div></div><div class="progress-log" id="nlog-${i}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">等待執行...</div></div></div>`;
+    c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${label}</div><div class="result-tag" style="background:var(--amber-light);color:#92400E">${t('card.processing')}</div></div><div class="progress-log" id="nlog-${i}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">${t('card.waiting')}</div></div></div>`;
     el.appendChild(c);cards[i]=c;
   }
   try{
@@ -846,7 +849,7 @@ async function runNotification(){
     _tabResults.notify=data.results;document.getElementById('export-btn').style.display='';
     loadStats();loadHistory();
   }catch(e){
-    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">連線失敗</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">無法連線伺服器：${e.message}</div></div></div></div>`;
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title"${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg"${t('conn.fail')}${e.message}</div></div></div></div>`;
   }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
 }
 
@@ -891,7 +894,7 @@ async function runBatch(){
   const cards={};
   _batchRows.forEach((row,i)=>{
     const c=document.createElement('div');c.className='result-card';c.id='bcard-'+i;
-    c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${row.order_id}</div><div class="result-tag" style="background:var(--amber-light);color:#92400E">處理中</div></div><div class="progress-log" id="blog-${i}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">等待執行...</div></div></div>`;
+    c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${row.order_id}</div><div class="result-tag" style="background:var(--amber-light);color:#92400E">${t('card.processing')}</div></div><div class="progress-log" id="blog-${i}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">${t('card.waiting')}</div></div></div>`;
     el.appendChild(c);cards[i]=c;
   });
   const fd=new FormData();
@@ -907,7 +910,7 @@ async function runBatch(){
     _tabResults.notify=data.results;document.getElementById('export-btn').style.display='';
     loadStats();loadHistory();
   }catch(e){
-    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">連線失敗</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">無法連線伺服器：${e.message}</div></div></div></div>`;
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title"${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg"${t('conn.fail')}${e.message}</div></div></div></div>`;
   }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
 }
 
@@ -921,18 +924,18 @@ async function loadHistory(){
     const typeKey=_typeMap[currentMode]||'';
     const filtered=rows.filter(r=>r.type&&r.type.startsWith(typeKey));
     const tbody=document.getElementById('history-body');
-    if(!filtered.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem">尚無紀錄</td></tr>';return;}
+    if(!filtered.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem">${t('history.empty')}</td></tr>`;return;}
     tbody.innerHTML=filtered.slice(0,100).map(r=>{
-      const t=r.timestamp?r.timestamp.replace('T',' ').slice(0,16):'';
+      const ts=r.timestamp?r.timestamp.replace('T',' ').slice(0,16):'';
       return `<tr>
-        <td class="mono" style="color:var(--text3);white-space:nowrap">${t}</td>
+        <td class="mono" style="color:var(--text3);white-space:nowrap">${ts}</td>
         <td style="font-weight:500">${r.operator||'—'}</td>
         <td class="mono">${r.order_id||''}</td>
         <td class="mono">${r.ticket_id?'#'+r.ticket_id:'—'}</td>
-        <td>${r.is_urgent?'<span class="badge urgent">急單</span>':'<span class="badge normal">一般單</span>'}</td>
+        <td>${r.is_urgent?`<span class="badge urgent">${t('card.urgent')}</span>`:`<span class="badge normal">${t('card.normal')}</span>`}</td>
         <td class="mono" style="white-space:nowrap">${r.ticket_deadline||'—'}</td>
         <td class="mono" style="white-space:nowrap">${r.follow_deadline||'—'}</td>
-        <td>${r.success?'<span class="badge ok">✓ 成功</span>':`<span class="badge fail" title="${r.error||''}">✗ 失敗</span>`}</td>
+        <td>${r.success?`<span class="badge ok">✓ ${t('hist.success')}</span>`:`<span class="badge fail" title="${r.error||''}">✗ ${t('hist.fail')}</span>`}</td>
       </tr>`;
     }).join('');
   }catch{}
@@ -943,18 +946,18 @@ function toggleHistory(){
   const btn=document.getElementById('history-toggle-btn');
   const open=wrap.style.display==='none';
   wrap.style.display=open?'':'none';
-  btn.textContent=open?'▼ 收起':'▶ 展開';
+  btn.textContent=open?t('history.collapse'):t('history.expand');
 }
 
 function exportCSV(){
-  if(!historyData.length){alert('尚無紀錄可匯出');return;}
+  if(!historyData.length){alert(_lang==='en'?'No records to export':'尚無紀錄可匯出');return;}
   const headers=['時間','處理人','訂單編號','工單ID','類型','最晚處理','後拋截止','狀態','錯誤訊息'];
   const rows=historyData.map(r=>[
     r.timestamp?r.timestamp.replace('T',' ').slice(0,16):'',
     r.operator||'',
     r.order_id||'',
     r.ticket_id?'#'+r.ticket_id:'',
-    r.is_urgent?'急單':'一般單',
+    r.is_urgent?t('card.urgent'):t('card.normal'),
     r.ticket_deadline||'',
     r.follow_deadline||'',
     r.success?'成功':'失敗',
@@ -968,6 +971,216 @@ function exportCSV(){
   a.href=url;a.download=`挽單紀錄_${date}.csv`;a.click();
   URL.revokeObjectURL(url);
 }
+
+// ── i18n ────────────────────────────────────────────────
+let _lang = localStorage.getItem('lang') || 'zh';
+let _helpBodyZH = '';
+const T = {
+zh: {
+  'title':'工單自動化','stop':'⏹ 停止','help-btn':'？ 使用說明',
+  'srv.connecting':'連線中...','srv.ok':'服務運作中','srv.err':'連線失敗',
+  'tab.wantan':'額滿挽單','tab.general':'一般工單','tab.notify':'對客通知',
+  'acct.title':'帳號設定','acct.user':'BE2 帳號','acct.pass':'BE2 密碼',
+  'acct.show':'顯示','acct.name':'你的名字（顯示在紀錄上）','acct.remember':'記住帳號與名字（僅存在此瀏覽器）',
+  'order.title':'訂單資訊','order.kkday':'KKday 訂單編號','order.supplier':'供應商編號',
+  'order.hint':'⚡ 二選一填入即可，每行一筆，支援多筆',
+  'wantan.type':'可改類型','wantan.bypage':'依商品頁面','wantan.byop':'依 OP 提供',
+  'wantan.opdates':'OP 可改場次','wantan.btn':'▶ 開始自動建立工單',
+  'notify.btn':'▶ 開始對客通知',
+  'notify.content-label':'對客通知內容 <span style="font-weight:400;color:var(--text3)">（請輸入中英版本 or 英文）</span>',
+  'batch.title':'批次上傳（各單不同內容）',
+  'batch.step1':'點擊「下載範本」，依格式填入訂單編號與各單通知內容',
+  'batch.step2':'點擊「選擇 Excel」上傳填好的檔案',
+  'batch.step3':'確認解析筆數後，點擊「開始批次發送」',
+  'batch.download':'⬇ 下載範本','batch.select':'📂 選擇 Excel',
+  'batch.nofile':'尚未選擇檔案','batch.parsed-pre':'已解析',
+  'batch.parsed-post':'筆資料，工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項',
+  'batch.btn':'▶ 開始批次發送',
+  'gen.category':'工單分類','cat.placeholder':'— 請選擇分類 —',
+  'gen.content-title':'需請客服協助內容','gen.subject-hint':'通知主旨會自動帶入工單分類路徑',
+  'gen.btn':'▶ 開始建立工單','results.title':'執行結果','btn.export':'⬇ 匯出 Excel',
+  'results.empty1':'輸入訂單編號後點擊執行','results.empty2':'這裡會顯示每筆訂單的處理進度',
+  'steps.title':'自動化步驟','stats.today':'今日','stats.total':'總筆數',
+  'stats.success':'成功','stats.fail':'失敗','btn.export-history':'⬇ 匯出 Excel',
+  'history.expand':'▶ 展開','history.collapse':'▼ 收起','history.empty':'尚無紀錄',
+  'th.time':'時間','th.operator':'處理人','th.order':'訂單編號','th.ticket':'工單 ID',
+  'th.type':'類型','th.deadline':'最晚處理','th.follow':'後拋截止','th.status':'狀態',
+  'queue.running':'執行中','queue.waiting':'等待中','queue.waiting-unit':'',
+  'week.this':'本週','week.nth':'第 %n 週前','week.nodata':'本週尚無資料',
+  'card.urgent':'加急','card.normal':'一般單','card.processing':'處理中',
+  'card.waiting':'等待執行...','card.expand':'展開詳情 ▾','card.collapse':'收起詳情 ▴',
+  'hist.success':'成功','hist.fail':'失敗','pw.show':'顯示','pw.hide':'隱藏','conn.fail':'無法連線伺服器：',
+  'ph.name':'例：Winnie','ph.supplier':'每行對應一筆供應商編號',
+  'ph.notif':'填入要通知的內容，例如：\n請注意集合時間為 09:00，集合地點：XXX\nPlease note the meeting time is 09:00 at XXX',
+  'ph.cat-search':'搜尋分類...','ph.gen-content':'填入通知內容（請輸入中英版本 or 英文）\nPlease enter the notification content in Chinese/English.',
+  'step.w.1':'新增工單','step.w.2':'燈泡帶入<br>最晚處理','step.w.3':'開始處理',
+  'step.w.4':'後拋<br>額滿挽單','step.w.5':'燈泡帶入<br>後拋截止','step.w.6':'偵測語系<br>填通知','step.w.7':'確認完成',
+  'step.n.1':'確認<br>已處理','step.n.2':'新增工單','step.n.3':'燈泡帶入<br>最晚處理',
+  'step.n.4':'開始處理','step.n.5':'對客通知<br>填主旨內容','step.n.6':'確認發送','step.n.7':'關閉工單','step.n.8':'訂單備註',
+  'step.g.1':'登入<br>取得日期','step.g.2':'前往<br>客服操作台','step.g.3':'新增工單<br>填訂單編號',
+  'step.g.4':'選工單分類<br>（動態）','step.g.5':'燈泡帶入<br>最晚處理','step.g.6':'確認建立<br>開始處理',
+  'step.g.7':'後拋<br>填備註','step.g.8':'填通知<br>主旨＋內容','step.g.9':'訂單備註<br>重置進度',
+  'help.title':'📋 工單自動化 使用說明書','help.subtitle':'KKday BE2 工單自動化工具 · 操作指南'
+},
+en: {
+  'title':'Ticket Automation','stop':'⏹ Stop','help-btn':'？ Help',
+  'srv.connecting':'Connecting...','srv.ok':'Server Running','srv.err':'Connection Failed',
+  'tab.wantan':'Waitlist Recovery','tab.general':'General Ticket','tab.notify':'Customer Notify',
+  'acct.title':'Account Settings','acct.user':'BE2 Account','acct.pass':'BE2 Password',
+  'acct.show':'Show','acct.name':'Your Name (shown in logs)','acct.remember':'Remember account & name (browser only)',
+  'order.title':'Order Info','order.kkday':'KKday Order ID','order.supplier':'Supplier ID',
+  'order.hint':'⚡ Fill either field, one per line, supports multiple',
+  'wantan.type':'Change Type','wantan.bypage':'By Product Page','wantan.byop':'By OP Provided',
+  'wantan.opdates':'OP Available Dates','wantan.btn':'▶ Start Auto Ticket',
+  'notify.btn':'▶ Start Customer Notify',
+  'notify.content-label':'Customer Notification <span style="font-weight:400;color:var(--text3)">(enter in Chinese+English or English only)</span>',
+  'batch.title':'Batch Upload (different content per order)',
+  'batch.step1':'Click "Download Template", fill in order IDs and notification content per order',
+  'batch.step2':'Click "Select Excel" to upload the completed file',
+  'batch.step3':'Confirm parsed count, then click "Start Batch Send"',
+  'batch.download':'⬇ Download Template','batch.select':'📂 Select Excel',
+  'batch.nofile':'No file selected','batch.parsed-pre':'Parsed',
+  'batch.parsed-post':'records. Category: Supplier self-handled → Supplier notify → Pre-trip notice',
+  'batch.btn':'▶ Start Batch Send',
+  'gen.category':'Ticket Category','cat.placeholder':'— Select Category —',
+  'gen.content-title':'CS Assistance Content','gen.subject-hint':'Subject auto-filled from category path',
+  'gen.btn':'▶ Start Creating Ticket','results.title':'Results','btn.export':'⬇ Export Excel',
+  'results.empty1':'Enter order IDs and click Run','results.empty2':'Processing progress will appear here',
+  'steps.title':'Automation Steps','stats.today':'Today','stats.total':'Total',
+  'stats.success':'Success','stats.fail':'Failed','btn.export-history':'⬇ Export Excel',
+  'history.expand':'▶ Expand','history.collapse':'▼ Collapse','history.empty':'No records',
+  'th.time':'Time','th.operator':'Operator','th.order':'Order ID','th.ticket':'Ticket ID',
+  'th.type':'Type','th.deadline':'Deadline','th.follow':'Follow-up','th.status':'Status',
+  'queue.running':'Running','queue.waiting':'Waiting','queue.waiting-unit':'',
+  'week.this':'This week','week.nth':'%n week(s) ago','week.nodata':'No data this week',
+  'card.urgent':'Urgent','card.normal':'Normal','card.processing':'Processing',
+  'card.waiting':'Waiting to run...','card.expand':'Expand Details ▾','card.collapse':'Collapse Details ▴',
+  'hist.success':'Success','hist.fail':'Failed','pw.show':'Show','pw.hide':'Hide','conn.fail':'Failed to connect: ',
+  'ph.name':'e.g. Winnie','ph.supplier':'One supplier ID per line',
+  'ph.notif':'Enter notification content, e.g.:\n請注意集合時間為 09:00，集合地點：XXX\nPlease note the meeting time is 09:00 at XXX',
+  'ph.cat-search':'Search category...','ph.gen-content':'Enter notification content (Chinese+English or English only).',
+  'step.w.1':'Create<br>Ticket','step.w.2':'Auto-fill<br>Deadline','step.w.3':'Start<br>Process',
+  'step.w.4':'Post-push<br>Waitlist','step.w.5':'Auto-fill<br>Follow-up','step.w.6':'Detect Lang<br>Fill Notify','step.w.7':'Confirm<br>Done',
+  'step.n.1':'Confirm<br>Processed','step.n.2':'Create<br>Ticket','step.n.3':'Auto-fill<br>Deadline',
+  'step.n.4':'Start<br>Process','step.n.5':'Customer Notify<br>Fill Subject','step.n.6':'Confirm<br>Send','step.n.7':'Close<br>Ticket','step.n.8':'Order<br>Note',
+  'step.g.1':'Login<br>Get Date','step.g.2':'Go to<br>CS Console','step.g.3':'Create Ticket<br>Fill Order ID',
+  'step.g.4':'Select Category<br>(Dynamic)','step.g.5':'Auto-fill<br>Deadline','step.g.6':'Confirm Create<br>Start Process',
+  'step.g.7':'Post-push<br>Fill Note','step.g.8':'Fill Notify<br>Subject+Content','step.g.9':'Order Note<br>Reset Progress',
+  'help.title':'📋 Ticket Automation User Guide','help.subtitle':'KKday BE2 Ticket Automation · Operation Guide',
+  'help.body':`
+    <div class="help-section">
+      <div class="help-section-title">⚙️ Account Settings</div>
+      <div class="help-row"><div class="help-row-icon" style="background:#F5F0E8">🔐</div>
+        <div class="help-row-content"><div class="help-row-title">BE2 Account / Password</div>
+          <div class="help-row-desc">Enter your BE2 login credentials. Check <b>Remember account &amp; name</b> to auto-fill on reload (<b>password is never saved</b> — re-enter each session).</div></div></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#F5F0E8">👤</div>
+        <div class="help-row-content"><div class="help-row-title">Your Name</div>
+          <div class="help-row-desc">Enter your name. It appears in order notes so others can track who ran the automation.</div></div></div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">📑 Feature Tabs Overview</div>
+      <div class="help-row"><div class="help-row-icon" style="background:#FEF3C7">🟡</div>
+        <div class="help-row-content"><div class="help-row-title">Waitlist Recovery <span class="help-tag help-tag-w">Waitlist</span></div>
+          <div class="help-row-desc">Enter order IDs (or supplier IDs) to auto-create waitlist tickets, post-push, and fill in the notification. Supports multiple orders — one per line.</div></div></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#E4EDE5">🟢</div>
+        <div class="help-row-content"><div class="help-row-title">General Ticket <span class="help-tag help-tag-g">General</span></div>
+          <div class="help-row-desc">Enter order IDs, select a ticket category (major / sub / detail), fill in notification content, then auto-create and post-push. Supports multiple orders — one per line.</div></div></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#FFE4E6">🔴</div>
+        <div class="help-row-content"><div class="help-row-title">Customer Notify <span class="help-tag help-tag-n">Pre-trip</span></div>
+          <div class="help-row-desc">Auto-creates a customer notification ticket and sends it. Two modes:<br>
+            <b>Single mode</b>: All orders share the same notification content.<br>
+            <b>Batch mode</b>: Each order has different content — upload an Excel template (see below).</div></div></div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">✏️ Entering Order IDs</div>
+      <div class="help-row"><div class="help-row-icon" style="background:#F5F0E8">📋</div>
+        <div class="help-row-content"><div class="help-row-title">KKday Order ID vs Supplier ID</div>
+          <div class="help-row-desc"><b>Fill in either field</b> — one entry per line. If both fields are filled, each row's KKday ID and Supplier ID are treated as the same order.<br><br>
+            Example (multiple):<br>
+            <code style="background:#F5F0E8;padding:4px 8px;border-radius:5px;font-size:11px;display:inline-block;margin-top:4px">26KK231600728<br>25KK258710416<br>25KK269680760</code></div></div></div>
+      <div class="help-tip">💡 For Waitlist Recovery / General Ticket, entering a Supplier ID will auto-look up the KKday Order ID before proceeding.</div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">📂 Batch Customer Notify (different content per order)</div>
+      <div class="help-row"><div class="help-row-icon" style="background:#EDE9FE">1️⃣</div>
+        <div class="help-row-content"><div class="help-row-title">Download Template</div>
+          <div class="help-row-desc">Click <b>⬇ Download Template</b> to get the Excel file. Column A: KKday Order ID. Column B: notification content (Chinese+English or English only).</div></div></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#EDE9FE">2️⃣</div>
+        <div class="help-row-content"><div class="help-row-title">Upload Excel</div>
+          <div class="help-row-desc">Click <b>📂 Select Excel</b> to upload the completed file. The page shows "Parsed N records" to confirm the count.</div></div></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#EDE9FE">3️⃣</div>
+        <div class="help-row-content"><div class="help-row-title">Start Batch Send</div>
+          <div class="help-row-desc">After confirming the count, click <b>▶ Start Batch Send</b> to process each order in sequence.</div></div></div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">🔀 Change Type <span class="help-tag help-tag-w">Waitlist Recovery only</span></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#FEF3C7">🛍️</div>
+        <div class="help-row-content"><div class="help-row-title">By Product Page</div>
+          <div class="help-row-desc">The system auto-detects the product page language and applies the matching notification template (Chinese / English / Japanese, etc.). <b>Recommended</b>.</div></div></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#FEF3C7">✍️</div>
+        <div class="help-row-content"><div class="help-row-title">By OP Provided</div>
+          <div class="help-row-desc">A date input appears — enter the departure date provided by the OP. The system calculates the notification content accordingly.</div></div></div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">📊 Results</div>
+      <div class="help-row"><div class="help-row-icon" style="background:#F0FDF4">✅</div>
+        <div class="help-row-content"><div class="help-row-title">Success</div>
+          <div class="help-row-desc">Shows a green <b>Success</b> badge with ticket ID and deadline. Click <b>Expand Details</b> to view the full step log.</div></div></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#FEF2F2">❌</div>
+        <div class="help-row-content"><div class="help-row-title">Failed</div>
+          <div class="help-row-desc">Shows a red <b>Failed</b> badge. Click <b>Expand Details</b> to see the error and which step failed.</div></div></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#F5F0E8">⬇️</div>
+        <div class="help-row-content"><div class="help-row-title">Export Excel</div>
+          <div class="help-row-desc">After execution, an <b>⬇ Export Excel</b> button appears. Download all results (order ID, ticket ID, status, deadline, etc.) as an Excel file.</div></div></div>
+      <div class="help-tip">💡 Results on each tab are <b>preserved</b> when switching tabs — you can return to view them anytime.</div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">⏹ Stop Execution</div>
+      <div class="help-row"><div class="help-row-icon" style="background:#FEF2F2">🛑</div>
+        <div class="help-row-content"><div class="help-row-title">How to Stop <span class="help-chip-red">⏹ Stop</span></div>
+          <div class="help-row-desc">While running, a red <b>⏹ Stop</b> button appears in the top bar. After clicking, the system finishes the <b>current step then immediately stops</b> (within a few seconds) and skips remaining orders.<br><br>
+          Stopped orders show <b>Failed / Manually stopped</b>; pending orders are not processed.</div></div></div>
+      <div class="help-tip">⚠️ Stopping does <b>not</b> recall orders already sent — only orders not yet started are skipped.</div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">🕓 History</div>
+      <div class="help-row"><div class="help-row-icon" style="background:#F5F0E8">📜</div>
+        <div class="help-row-content"><div class="help-row-title">View Past Executions</div>
+          <div class="help-row-desc">The <b>History</b> section at the bottom auto-filters by the current tab:<br>
+          • Waitlist tab: shows waitlist records<br>
+          • General Ticket tab: shows general ticket records<br>
+          • Customer Notify tab: shows notification records<br><br>
+          Each record includes execution time, order ID, ticket ID, and result.</div></div></div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">⚠️ Notes</div>
+      <div class="help-tip" style="line-height:2">
+        • <b>Do not close or refresh the page</b> while running — active orders will be force-stopped.<br>
+        • The system runs at most <b>2 browsers simultaneously</b>; extra orders are queued (top bar shows "Running N/2").<br>
+        • Your password is never saved — re-enter it each session.<br>
+        • If you see <b>Connection Failed</b>, ensure the backend service is running (top-right shows "Server Running" when OK).
+      </div>
+    </div>`
+}
+};
+function t(k){ return (T[_lang]??T.zh)[k]??T.zh[k]??k; }
+function applyLang(reload=true){
+  document.getElementById('lang-btn').textContent=_lang==='en'?'中':'EN';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.getAttribute('data-i18n'));if(v)el.textContent=v;});
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{const v=t(el.getAttribute('data-i18n-html'));if(v)el.innerHTML=v;});
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const v=t(el.getAttribute('data-i18n-placeholder'));if(v)el.placeholder=v;});
+  // Fix history toggle button to reflect actual expanded/collapsed state
+  const hb=document.getElementById('history-toggle-btn');const hw=document.getElementById('history-table-wrap');
+  if(hb&&hw)hb.textContent=hw.style.display==='none'?t('history.expand'):t('history.collapse');
+  // Help modal (rendered after script tag, so use null-check)
+  const hh=document.querySelector('.help-modal-head h2');if(hh)hh.textContent=t('help.title');
+  const hp=document.querySelector('.help-modal-head p');if(hp)hp.textContent=t('help.subtitle');
+  const hbd=document.querySelector('.help-body');
+  if(hbd){if(!_helpBodyZH)_helpBodyZH=hbd.innerHTML;hbd.innerHTML=_lang==='en'?T.en['help.body']:_helpBodyZH;}
+  if(reload){loadHistory();loadStats();}
+}
+function toggleLang(){_lang=_lang==='zh'?'en':'zh';localStorage.setItem('lang',_lang);applyLang();}
+document.addEventListener('DOMContentLoaded',()=>applyLang(false));
 
 checkHealth();setInterval(checkHealth,30000);
 loadStats();loadHistory();
@@ -1112,7 +1325,7 @@ async function runGeneral(){
     const oid=orderIds[i]||'';const sid=supplierIds[i]||'';
     const label=oid||(sid?'供應商:'+sid:'');
     const c=document.createElement('div');c.className='result-card';c.id='gcard-'+i;
-    c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${label}</div><div class="result-tag" style="background:var(--amber-light);color:#0F766E">處理中</div></div><div class="progress-log" id="glog-${i}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">等待執行...</div></div></div>`;
+    c.innerHTML=`<div class="result-header running"><div class="result-header-icon">⟳</div><div class="result-header-title">${label}</div><div class="result-tag" style="background:var(--amber-light);color:#0F766E">${t('card.processing')}</div></div><div class="progress-log" id="glog-${i}"><div class="log-line"><div class="log-icon" style="color:var(--amber)">⟳</div><div class="log-msg">${t('card.waiting')}</div></div></div>`;
     el.appendChild(c);cards[i]=c;
   }
   try{
@@ -1123,7 +1336,7 @@ async function runGeneral(){
     _tabResults.general=data.results;document.getElementById('export-btn').style.display='';
     loadStats();loadHistory();
   }catch(e){
-    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">連線失敗</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">無法連線伺服器：${e.message}</div></div></div></div>`;
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title"${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg"${t('conn.fail')}${e.message}</div></div></div></div>`;
   }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
 }
 
