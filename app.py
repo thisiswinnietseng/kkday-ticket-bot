@@ -1117,20 +1117,37 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
 
             # ── 最晚處理時間燈泡 ───────────────────────────────
             push('點擊最晚處理時間燈泡...')
+            await page.wait_for_selector("button[class*='k-btn--orange']", timeout=8000)
             await page.locator("button[class*='k-btn--orange']").first.click()
-            await page.wait_for_timeout(3000)
+            await page.wait_for_timeout(3500)
             tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
                 push('燈泡未帶入，重試一次...')
                 await page.locator("button[class*='k-btn--orange']").first.click()
-                await page.wait_for_timeout(3000)
+                await page.wait_for_timeout(4000)
                 tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
-                raise Exception('最晚處理時間燈泡點擊後仍為空')
+                push('燈泡未帶入，重試第二次...')
+                await page.locator("button[class*='k-btn--orange']").first.click()
+                await page.wait_for_timeout(5000)
+                tdl = await page.locator("input[placeholder='Select date']").first.input_value()
+            if not tdl:
+                raise Exception('最晚處理時間燈泡點擊後仍為空，請確認工單分類是否完整選擇')
             push(f'最晚處理時間：{tdl}', 'ok')
 
             push('確認建立工單...')
-            await page.mouse.click(889, 651)
+            confirmed = await page.evaluate("""() => {
+                const btns = Array.from(document.querySelectorAll('button'));
+                const btn = btns.find(b =>
+                    b.textContent.trim() === '確認' &&
+                    b.offsetParent !== null &&
+                    !b.disabled
+                );
+                if (btn) { btn.click(); return true; }
+                return false;
+            }""")
+            if not confirmed:
+                await page.get_by_role("button", name="確認").first.click()
             await page.wait_for_timeout(2000)
             confirm2 = page.locator("button:has-text('確認')")
             if await confirm2.count() > 0:
