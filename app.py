@@ -1284,23 +1284,42 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             }""", cat_l3)
             if not found_l3:
                 raise Exception(f'找不到「{cat_l3}」選項，請確認工單分類下拉是否正確展開')
-            await page.wait_for_timeout(1500)
+            await page.wait_for_timeout(2500)
             push(f'工單分類已選：{cat_l1}→{cat_l2}→{cat_l3}', 'ok')
 
             # ── 最晚處理時間燈泡 ───────────────────────────────
             push('點擊最晚處理時間燈泡...')
-            await page.wait_for_selector("button[class*='k-btn--orange']", timeout=8000)
-            await page.locator("button[class*='k-btn--orange']").first.click()
+
+            async def click_deadline_bulb():
+                clicked = await page.evaluate("""() => {
+                    const labels = Array.from(document.querySelectorAll('label, span, div'));
+                    const lbl = labels.find(l =>
+                        l.textContent.trim().includes('最晚處理時間') && l.offsetParent !== null);
+                    if (lbl) {
+                        const container = lbl.closest('tr, [class*="form-item"], [class*="field"], [class*="row"]')
+                                          || lbl.parentElement?.parentElement;
+                        if (container) {
+                            const btn = container.querySelector('button[class*="k-btn--orange"]');
+                            if (btn) { btn.click(); return true; }
+                        }
+                    }
+                    const allBtns = Array.from(document.querySelectorAll('button[class*="k-btn--orange"]'));
+                    if (allBtns.length > 0) { allBtns[0].click(); return true; }
+                    return false;
+                }""")
+                return clicked
+
+            await click_deadline_bulb()
             await page.wait_for_timeout(3500)
             tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
                 push('燈泡未帶入，重試一次...')
-                await page.locator("button[class*='k-btn--orange']").first.click()
+                await click_deadline_bulb()
                 await page.wait_for_timeout(4000)
                 tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
                 push('燈泡未帶入，重試第二次...')
-                await page.locator("button[class*='k-btn--orange']").first.click()
+                await click_deadline_bulb()
                 await page.wait_for_timeout(5000)
                 tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
