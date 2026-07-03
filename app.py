@@ -1812,6 +1812,9 @@ def api_run():
             _waiting_count -= 1
         try:
             r = asyncio.run(run_flow(oid, prog, username, password, follow_type, op_dates, sid, wantan_type))
+        except Exception as e:
+            prog.append({'msg': f'未預期錯誤：{e}', 'status': 'error'})
+            r = {'success': False, 'error': str(e), 'order_id': oid or sid}
         finally:
             _semaphore.release()
         resolved_id = r.get('order_id', oid or sid)

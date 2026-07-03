@@ -816,7 +816,7 @@ async function runFlow(){
     _tabResults.wantan=data.results;document.getElementById('export-btn').style.display='';
     loadStats();loadHistory();
   }catch(e){
-    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title"${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg"${t('conn.fail')}${e.message}</div></div></div></div>`;
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${t('conn.fail')}${e.message}</div></div></div></div>`;
   }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
 }
 
@@ -895,7 +895,7 @@ async function runNotification(){
     _tabResults.notify=data.results;document.getElementById('export-btn').style.display='';
     loadStats();loadHistory();
   }catch(e){
-    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title"${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg"${t('conn.fail')}${e.message}</div></div></div></div>`;
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${t('conn.fail')}${e.message}</div></div></div></div>`;
   }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
 }
 
@@ -956,7 +956,7 @@ async function runBatch(){
     _tabResults.notify=data.results;document.getElementById('export-btn').style.display='';
     loadStats();loadHistory();
   }catch(e){
-    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title"${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg"${t('conn.fail')}${e.message}</div></div></div></div>`;
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${t('conn.fail')}${e.message}</div></div></div></div>`;
   }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
 }
 
@@ -1393,7 +1393,7 @@ async function runGeneral(){
     _tabResults.general=data.results;document.getElementById('export-btn').style.display='';
     loadStats();loadHistory();
   }catch(e){
-    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title"${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg"${t('conn.fail')}${e.message}</div></div></div></div>`;
+    el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${t('conn.fail')}${e.message}</div></div></div></div>`;
   }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
 }
 
