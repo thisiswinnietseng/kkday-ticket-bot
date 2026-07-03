@@ -387,7 +387,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -490,7 +490,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             # 填訂單編號
             order_input = page.locator("input[placeholder='Please enter text']").first
             await order_input.fill(resolved_order_id)
-            await page.wait_for_timeout(500)
+            await page.keyboard.press('Tab')
             await page.wait_for_timeout(1000)
 
             # 選工單分類（全部用 JS，避免 get_by_text 30s timeout）
@@ -502,8 +502,13 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 const labels = Array.from(document.querySelectorAll('label, span, div'));
                 const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
                 if (lbl) {
-                    const next = lbl.nextElementSibling || lbl.parentElement?.querySelector('input, button, [class*=select], [class*=dropdown]');
-                    if (next) next.click();
+                    let el = lbl;
+                    for (let i = 0; i < 6; i++) {
+                        el = el.parentElement;
+                        if (!el) break;
+                        const inp = el.querySelector('input.k-cascader__search-input');
+                        if (inp && inp.offsetParent !== null) { inp.click(); return; }
+                    }
                 }
             }""")
             await page.wait_for_timeout(800)
@@ -517,7 +522,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             if not found_l1:
                 raise Exception('找不到「訂單異動」分類選項')
             push('訂單異動 ✓')
-            await page.wait_for_timeout(400)
+            await page.wait_for_timeout(800)
 
             if wantan_type == 'mituan':
                 # L2：供應商通知
@@ -542,25 +547,21 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                     raise Exception('找不到「改期」選項，請確認工單分類下拉是否正確展開')
                 push('改期 ✓')
             else:
-                # L2：額滿
+                # L2：額滿 / 售罄
                 found_l2 = await page.evaluate("""() => {
-                    const els = Array.from(document.querySelectorAll('li, div, span'));
-                    const el = els.find(e => e.textContent.trim() === '額滿' && e.offsetParent !== null);
+                    const els = Array.from(document.querySelectorAll('li'));
+                    const el = els.find(e => e.textContent.trim().includes('額滿') && e.offsetParent !== null);
                     if (el) { el.click(); return true; }
                     return false;
                 }""")
                 if not found_l2:
-                    raise Exception('找不到「額滿」分類選項')
+                    raise Exception('找不到「額滿 / 售罄」分類選項')
                 push('額滿 ✓')
-                await page.wait_for_timeout(400)
-                # L3：挽單（用 JS 繞過 pointer event 攔截）
+                await page.wait_for_timeout(800)
+                # L3：挽單
                 found_l3 = await page.evaluate("""() => {
-                    const els = Array.from(document.querySelectorAll('*'));
-                    const el = els.find(e =>
-                        e.children.length === 0 &&
-                        e.textContent.trim() === '挽單' &&
-                        e.offsetParent !== null
-                    );
+                    const els = Array.from(document.querySelectorAll('li, div, span'));
+                    const el = els.find(e => e.textContent.trim() === '挽單' && e.offsetParent !== null);
                     if (el) { el.click(); return true; }
                     return false;
                 }""")
@@ -835,7 +836,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -924,6 +925,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             await page.wait_for_timeout(1000)
             order_input = page.locator("input[placeholder=\'Please enter text\']").first
             await order_input.fill(resolved_order_id)
+            await page.keyboard.press('Tab')
             await page.wait_for_timeout(1000)
 
             # 選工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
@@ -932,15 +934,34 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
                 const labels = Array.from(document.querySelectorAll('label, span, div'));
                 const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
                 if (lbl) {
-                    const next = lbl.nextElementSibling || lbl.parentElement?.querySelector('input, button, [class*=select], [class*=dropdown]');
-                    if (next) next.click();
+                    let el = lbl;
+                    for (let i = 0; i < 6; i++) {
+                        el = el.parentElement;
+                        if (!el) break;
+                        const inp = el.querySelector('input.k-cascader__search-input');
+                        if (inp && inp.offsetParent !== null) { inp.click(); return; }
+                    }
                 }
             }""")
             await page.wait_for_timeout(800)
-            await page.get_by_text('供應商自理訊息', exact=True).first.click()
+            found_l1 = await page.evaluate("""() => {
+                const els = Array.from(document.querySelectorAll('li, div, span'));
+                const el = els.find(e => e.textContent.trim() === '供應商自理訊息' && e.offsetParent !== null);
+                if (el) { el.click(); return true; }
+                return false;
+            }""")
+            if not found_l1:
+                raise Exception('找不到「供應商自理訊息」分類選項，請確認下拉選單已展開')
             push('供應商自理訊息 ✓')
             await page.wait_for_timeout(400)
-            await page.get_by_text('供應商通知', exact=True).first.click()
+            found_l2 = await page.evaluate("""() => {
+                const els = Array.from(document.querySelectorAll('li, div, span'));
+                const el = els.find(e => e.textContent.trim() === '供應商通知' && e.offsetParent !== null);
+                if (el) { el.click(); return true; }
+                return false;
+            }""")
+            if not found_l2:
+                raise Exception('找不到「供應商通知」分類選項，請確認下拉選單已展開')
             push('供應商通知 ✓')
             await page.wait_for_timeout(600)
             found_l3 = await page.evaluate("""() => {
@@ -1146,7 +1167,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -1243,16 +1264,23 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
 
             order_input = page.locator("input[placeholder='Please enter text']").first
             await order_input.fill(resolved_order_id)
+            await page.keyboard.press('Tab')
             await page.wait_for_timeout(1000)
 
             # ── 選工單分類（全部用 JS，避免 get_by_text 30s timeout）─────
             push(f'選工單分類：{cat_l1}→{cat_l2}→{cat_l3}...')
+
             await page.evaluate("""() => {
                 const labels = Array.from(document.querySelectorAll('label, span, div'));
                 const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
                 if (lbl) {
-                    const next = lbl.nextElementSibling || lbl.parentElement?.querySelector('input, button, [class*=select], [class*=dropdown]');
-                    if (next) next.click();
+                    let el = lbl;
+                    for (let i = 0; i < 6; i++) {
+                        el = el.parentElement;
+                        if (!el) break;
+                        const inp = el.querySelector('input.k-cascader__search-input');
+                        if (inp && inp.offsetParent !== null) { inp.click(); return; }
+                    }
                 }
             }""")
             await page.wait_for_timeout(1000)
