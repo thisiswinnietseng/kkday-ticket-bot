@@ -139,6 +139,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft
 label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
 .field-wrap { margin-bottom: 12px; }
 .field-wrap:last-child { margin-bottom: 0; }
+.gen-notify-row { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+.gen-notify-row .gen-notify-q { font-size: 12px; font-weight: 600; color: var(--text2); }
+.gen-notify-opt { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer; margin: 0; }
+.gen-notify-opt input[type=radio] { width: 14px; height: 14px; accent-color: var(--green); cursor: pointer; }
 input[type=email], input[type=password], input[type=text] { width: 100%; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; font-family: inherit; color: var(--text); background: var(--surface2); outline: none; transition: border-color .15s, box-shadow .15s; }
 input[type=email]:focus, input[type=password]:focus, input[type=text]:focus { border-color: var(--green); background: #fff; box-shadow: 0 0 0 3px rgba(0,165,80,.1); }
 textarea { width: 100%; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 8px 12px; font-family: 'Menlo', 'Consolas', 'SF Mono', monospace; font-size: 12px; color: var(--text); background: var(--surface2); resize: vertical; outline: none; transition: border-color .15s, box-shadow .15s; line-height: 1.6; min-height: 80px; }
@@ -477,7 +481,12 @@ textarea::placeholder { color: var(--text3); }
         </div>
         <div class="card-section-title" data-i18n="gen.content-title">需請客服協助內容</div>
         <div class="field-wrap">
-          <label style="font-weight:400;color:var(--text3);font-size:11px" data-i18n="gen.subject-hint">通知主旨會自動帶入工單分類路徑</label>
+          <div class="gen-notify-row">
+            <span class="gen-notify-q" data-i18n="gen.notify-q">此後拋是否需要通知旅客？</span>
+            <label class="gen-notify-opt"><input type="radio" name="gen-notify" id="gen-notify-yes" value="yes" onchange="toggleGenNotify()"> <span data-i18n="gen.notify-yes">是</span></label>
+            <label class="gen-notify-opt"><input type="radio" name="gen-notify" id="gen-notify-no" value="no" checked onchange="toggleGenNotify()"> <span data-i18n="gen.notify-no">否</span></label>
+          </div>
+          <label id="gen-subject-hint" style="font-weight:400;color:var(--text3);font-size:11px;display:none" data-i18n="gen.subject-hint">通知主旨會自動帶入工單分類路徑</label>
           <textarea id="gen-notif-content" data-i18n-placeholder="ph.gen-content" placeholder="填入通知內容（請輸入中英版本 or 英文）&#10;Please enter the notification content in Chinese/English." style="min-height:100px"></textarea>
         </div>
         <button class="btn-run" id="gen-btn" onclick="runGeneral()">
@@ -998,6 +1007,7 @@ zh: {
   'batch.btn':'▶ 開始批次發送',
   'gen.category':'工單分類','cat.placeholder':'— 請選擇分類 —',
   'gen.content-title':'需請客服協助內容','gen.subject-hint':'通知主旨會自動帶入工單分類路徑',
+  'gen.notify-q':'此後拋是否需要通知旅客？','gen.notify-yes':'是','gen.notify-no':'否',
   'gen.btn':'▶ 開始建立工單','results.title':'執行結果','btn.export':'⬇ 匯出 Excel',
   'results.empty1':'輸入訂單編號後點擊執行','results.empty2':'這裡會顯示每筆訂單的處理進度',
   'steps.title':'自動化步驟','stats.today':'今日','stats.total':'總筆數',
@@ -1044,6 +1054,7 @@ en: {
   'batch.btn':'▶ Start Batch Send',
   'gen.category':'Ticket Category','cat.placeholder':'— Select Category —',
   'gen.content-title':'CS Assistance Content','gen.subject-hint':'Subject auto-filled from category path',
+  'gen.notify-q':'Notify customer via this post-push?','gen.notify-yes':'Yes','gen.notify-no':'No',
   'gen.btn':'▶ Start Creating Ticket','results.title':'Results','btn.export':'⬇ Export Excel',
   'results.empty1':'Enter order IDs and click Run','results.empty2':'Processing progress will appear here',
   'steps.title':'Automation Steps','stats.today':'Today','stats.total':'Total',
@@ -1306,9 +1317,10 @@ async function runGeneral(){
   const catL2=document.getElementById('gen-cat-l2').value;
   const catL3=document.getElementById('gen-cat-l3').value;
   const notifContent=document.getElementById('gen-notif-content').value.trim();
+  const notifyCustomer=document.querySelector('input[name="gen-notify"]:checked')?.value||'no';
   if(!orderRaw&&!supplierRaw){alert('請輸入 KKday 訂單編號或供應商編號');return;}
   if(!catL1||!catL2||!catL3){alert('請選擇完整工單分類（大／中／小）');return;}
-  if(!notifContent){alert('請填入對客通知內容');return;}
+  if(!notifContent){alert('請填入後拋備註 / 通知內容');return;}
   const btn=document.getElementById('gen-btn');
   btn.disabled=true;btn.classList.add('running');showStopBtn();
   const username=document.getElementById('be2-user').value.trim();
@@ -1329,7 +1341,7 @@ async function runGeneral(){
     el.appendChild(c);cards[i]=c;
   }
   try{
-    const res=await fetch('/api/run_general',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_ids:orderRaw,supplier_ids:supplierRaw,cat_l1:catL1,cat_l2:catL2,cat_l3:catL3,notif_content:notifContent,username,password,operator})});
+    const res=await fetch('/api/run_general',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_ids:orderRaw,supplier_ids:supplierRaw,cat_l1:catL1,cat_l2:catL2,cat_l3:catL3,notif_content:notifContent,notify_customer:notifyCustomer,username,password,operator})});
     const data=await res.json();
     if(data.error){el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">錯誤</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${data.error}</div></div></div></div>`;return;}
     for(let i=0;i<data.results.length;i++){const r=data.results[i];const card=cards[i];if(!card)continue;fillCard(card,r,'glog-'+i);}
@@ -1338,6 +1350,11 @@ async function runGeneral(){
   }catch(e){
     el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title"${t('srv.err')}</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg"${t('conn.fail')}${e.message}</div></div></div></div>`;
   }finally{btn.disabled=false;btn.classList.remove('running');hideStopBtn();}
+}
+
+function toggleGenNotify(){
+  const isYes=document.getElementById('gen-notify-yes').checked;
+  document.getElementById('gen-subject-hint').style.display=isYes?'':'none';
 }
 
 function openHelp(){ document.getElementById('help-overlay').classList.add('open'); document.body.style.overflow='hidden'; }

@@ -980,7 +980,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
 
 
 async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3,
-                              notif_content, progress, username, password, operator=''):
+                              notif_content, progress, username, password, operator='', notify_customer='yes'):
     def push(msg, s='info'):
         progress.append({'msg': msg, 'status': s})
         line = f"  [{s}] {msg}"
@@ -1198,12 +1198,12 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
                 await auto.click()
             await page.wait_for_timeout(300)
 
-            # 後拋備註 — 自動帶入工單分類路徑
-            follow_content = f'{cat_l1} > {cat_l2} > {cat_l3}'
+            # 後拋備註 — 填入 OP 輸入通知內容（兩條路徑相同）
             post_ta = page.locator('textarea').first
             if await post_ta.count() > 0:
-                await post_ta.fill(follow_content)
+                await post_ta.fill(notif_content)
             await page.wait_for_timeout(300)
+            push('後拋備註已填入', 'ok')
 
             # 後拋截止時間燈泡
             push('點擊後拋截止時間燈泡...')
@@ -1214,56 +1214,68 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
                 raise Exception('後拋截止時間燈泡點擊後仍為空')
             push(f'後拋截止時間：{fdl}', 'ok')
 
-            # 此後拋是否需要通知旅客 → 是
-            await page.evaluate("""() => {
-                const labels = Array.from(document.querySelectorAll('label'));
-                const yesLabel = labels.find(l => l.textContent.trim() === '是');
-                if (yesLabel) yesLabel.click();
-            }""")
-            await page.wait_for_timeout(300)
+            if notify_customer == 'yes':
+                # 此後拋需要通知旅客 → 是
+                await page.evaluate("""() => {
+                    const labels = Array.from(document.querySelectorAll('label'));
+                    const yesLabel = labels.find(l => l.textContent.trim() === '是');
+                    if (yesLabel) yesLabel.click();
+                }""")
+                await page.wait_for_timeout(300)
+                push('此後拋需通知旅客 → 是')
 
-            # 誰來發送對客通知 → 後拋處理人
-            post_handler = page.locator("label:has-text('後拋處理人')")
-            if await post_handler.count() > 0:
-                await post_handler.click()
-            await page.wait_for_timeout(500)
-            push('選擇後拋處理人', 'ok')
+                # 誰來發送對客通知 → 後拋處理人
+                post_handler = page.locator("label:has-text('後拋處理人')")
+                if await post_handler.count() > 0:
+                    await post_handler.click()
+                await page.wait_for_timeout(500)
+                push('選擇後拋處理人', 'ok')
 
-            # 通知主旨 — 自動帶入分類路徑
-            notif_subject = f'{cat_l1} > {cat_l2} > {cat_l3}'
-            await page.evaluate("""(subject) => {
-                const labels = Array.from(document.querySelectorAll('label'));
-                const lb = labels.find(l => l.textContent.trim().includes('通知主旨'));
-                let input = lb ? (lb.parentElement.querySelector('input') ||
-                                  lb.nextElementSibling?.querySelector('input')) : null;
-                if (!input) input = document.querySelector('input[placeholder*="主旨"]');
-                if (input) {
-                    input.focus(); input.value = subject;
-                    input.dispatchEvent(new Event('input', {bubbles: true}));
-                    input.dispatchEvent(new Event('change', {bubbles: true}));
-                }
-            }""", notif_subject)
-            await page.wait_for_timeout(300)
-            push(f'通知主旨已填入：{notif_subject}')
+                # 通知主旨 — 自動帶入分類路徑
+                notif_subject = f'{cat_l1} > {cat_l2} > {cat_l3}'
+                await page.evaluate("""(subject) => {
+                    const labels = Array.from(document.querySelectorAll('label'));
+                    const lb = labels.find(l => l.textContent.trim().includes('通知主旨'));
+                    let input = lb ? (lb.parentElement.querySelector('input') ||
+                                      lb.nextElementSibling?.querySelector('input')) : null;
+                    if (!input) input = document.querySelector('input[placeholder*="主旨"]');
+                    if (input) {
+                        input.focus(); input.value = subject;
+                        input.dispatchEvent(new Event('input', {bubbles: true}));
+                        input.dispatchEvent(new Event('change', {bubbles: true}));
+                    }
+                }""", notif_subject)
+                await page.wait_for_timeout(300)
+                push(f'通知主旨已填入：{notif_subject}')
 
-            # 通知內容 — OP 提供
-            await page.evaluate("""(content) => {
-                const labels = Array.from(document.querySelectorAll('label'));
-                const lb = labels.find(l => l.textContent.trim().includes('通知內容'));
-                let ta = lb ? (lb.parentElement.querySelector('textarea') ||
-                               lb.nextElementSibling?.querySelector('textarea')) : null;
-                if (!ta) {
-                    const tas = Array.from(document.querySelectorAll('textarea'));
-                    ta = tas[tas.length - 1];
-                }
-                if (ta) {
-                    ta.focus(); ta.value = content;
-                    ta.dispatchEvent(new Event('input', {bubbles: true}));
-                    ta.dispatchEvent(new Event('change', {bubbles: true}));
-                }
-            }""", notif_content)
-            await page.wait_for_timeout(300)
-            push('通知內容已填入')
+                # 通知內容 — OP 提供
+                await page.evaluate("""(content) => {
+                    const labels = Array.from(document.querySelectorAll('label'));
+                    const lb = labels.find(l => l.textContent.trim().includes('通知內容'));
+                    let ta = lb ? (lb.parentElement.querySelector('textarea') ||
+                                   lb.nextElementSibling?.querySelector('textarea')) : null;
+                    if (!ta) {
+                        const tas = Array.from(document.querySelectorAll('textarea'));
+                        ta = tas[tas.length - 1];
+                    }
+                    if (ta) {
+                        ta.focus(); ta.value = content;
+                        ta.dispatchEvent(new Event('input', {bubbles: true}));
+                        ta.dispatchEvent(new Event('change', {bubbles: true}));
+                    }
+                }""", notif_content)
+                await page.wait_for_timeout(300)
+                push('通知內容已填入')
+
+            else:
+                # 此後拋不需要通知旅客 → 否
+                await page.evaluate("""() => {
+                    const labels = Array.from(document.querySelectorAll('label'));
+                    const noLabel = labels.find(l => l.textContent.trim() === '否');
+                    if (noLabel) noLabel.click();
+                }""")
+                await page.wait_for_timeout(300)
+                push('此後拋不需通知旅客 → 否')
 
             # 確認後拋
             await page.get_by_role("button", name="確認").last.click()
@@ -1328,13 +1340,14 @@ def api_run_general():
     cat_l2 = data.get('cat_l2', '').strip()
     cat_l3 = data.get('cat_l3', '').strip()
     notif_content = data.get('notif_content', '').strip()
+    notify_customer = data.get('notify_customer', 'yes').strip()
 
     if not username or not password:
         return jsonify({'error': '請輸入 BE2 帳號與密碼'}), 400
     if not cat_l1 or not cat_l2 or not cat_l3:
         return jsonify({'error': '請選擇完整工單分類'}), 400
     if not notif_content:
-        return jsonify({'error': '請填入對客通知內容'}), 400
+        return jsonify({'error': '請填入後拋備註 / 通知內容'}), 400
 
     pairs = []
     max_len = max(len(order_ids), len(supplier_ids)) if (order_ids or supplier_ids) else 0
@@ -1360,7 +1373,7 @@ def api_run_general():
             _waiting_count -= 1
         try:
             r = asyncio.run(run_general_single(oid, sid, cat_l1, cat_l2, cat_l3,
-                                               notif_content, prog, username, password, operator))
+                                               notif_content, prog, username, password, operator, notify_customer))
         finally:
             _semaphore.release()
         resolved_id = r.get('order_id', oid or sid)
