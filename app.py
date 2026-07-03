@@ -1030,7 +1030,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             await page.wait_for_timeout(1500)
 
             # 填通知主旨
-            notif_subject = '行前通知 Pre-departure Notice'
+            notif_subject = '對客通知 Customer Notification'
             await page.evaluate("""(subject) => {
                 const labels = Array.from(document.querySelectorAll('label'));
                 const lb = labels.find(l => l.textContent.trim().includes('通知主旨'));
