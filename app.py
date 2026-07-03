@@ -720,6 +720,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             notif_dl = (fdl_dt - timedelta(hours=2)).strftime('%Y/%m/%d %H:%M')
 
             # 取通知內容，替換 D/L（各語系空白數量不同，用 regex）與 OP 場次
+            push(f'挽單類型：{"未成團" if wantan_type == "mituan" else "額滿"}，可改類型：{follow_type}')
             if wantan_type == 'mituan':
                 notif_tmpl = NOTIF_TEMPLATES_MITUAN
                 notif_content = notif_tmpl.get(customer_lang, notif_tmpl.get('en', ''))
