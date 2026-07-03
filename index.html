@@ -161,6 +161,17 @@ textarea::placeholder { color: var(--text3); }
 .order-pair textarea { min-height: 64px; }
 .order-pair-hint { font-size: 11px; font-weight: 600; color: var(--green); margin-bottom: 12px; padding: 6px 10px; background: var(--green-light); border-radius: var(--radius-sm); display: flex; align-items: center; gap: 6px; }
 
+/* ── Wantan type (額滿/未成團) ── */
+.wantan-type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.wantan-type-opt { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: border-color .15s, background .15s; background: var(--surface2); }
+.wantan-type-opt.sel { border-color: var(--green); background: var(--green-light); }
+.wantan-type-opt input[type=radio] { display: none; }
+.wantan-type-radio { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: border-color .15s, background .15s; }
+.wantan-type-opt.sel .wantan-type-radio { border-color: var(--green); background: var(--green); }
+.wantan-type-radio-dot { width: 5px; height: 5px; border-radius: 50%; background: white; display: none; }
+.wantan-type-opt.sel .wantan-type-radio-dot { display: block; }
+.wantan-type-label { font-size: 12px; font-weight: 500; color: var(--text2); }
+
 /* ── Type toggle ── */
 .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .type-opt { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: border-color .15s, background .15s; background: var(--surface2); }
@@ -322,7 +333,7 @@ textarea::placeholder { color: var(--text3); }
 </div>
 
 <div class="mode-tabs">
-  <div class="mode-tab active wantan" id="tab-wantan" onclick="switchMode('wantan')" data-i18n="tab.wantan">額滿挽單</div>
+  <div class="mode-tab active wantan" id="tab-wantan" onclick="switchMode('wantan')" data-i18n="tab.wantan">挽單</div>
   <div class="mode-tab general" id="tab-general" onclick="switchMode('general')" data-i18n="tab.general">一般工單</div>
   <div class="mode-tab notify" id="tab-notify" onclick="switchMode('notify')" data-i18n="tab.notify">對客通知</div>
 </div>
@@ -369,6 +380,21 @@ textarea::placeholder { color: var(--text3); }
           </div>
         </div>
         <div class="order-pair-hint" data-i18n="order.hint">⚡ 二選一填入即可，每行一筆，支援多筆</div>
+        <div class="field-wrap">
+          <label data-i18n="wantan.wtype">挽單類型</label>
+          <div class="wantan-type-toggle">
+            <label class="wantan-type-opt sel" id="wopt-mansatisfied" onclick="selectWantanType('mansatisfied')">
+              <input type="radio" name="wantan-type" value="mansatisfied" checked>
+              <div class="wantan-type-radio"><div class="wantan-type-radio-dot"></div></div>
+              <span class="wantan-type-label" data-i18n="wantan.mansatisfied">額滿</span>
+            </label>
+            <label class="wantan-type-opt" id="wopt-mituan" onclick="selectWantanType('mituan')">
+              <input type="radio" name="wantan-type" value="mituan">
+              <div class="wantan-type-radio"><div class="wantan-type-radio-dot"></div></div>
+              <span class="wantan-type-label" data-i18n="wantan.mituan">未成團</span>
+            </label>
+          </div>
+        </div>
         <div class="field-wrap">
           <label data-i18n="wantan.type">可改類型</label>
           <div class="type-toggle">
@@ -625,6 +651,17 @@ textarea::placeholder { color: var(--text3); }
 </div>
 
 <script>
+function selectWantanType(val){
+  document.querySelector('input[name="wantan-type"][value="'+val+'"]').checked=true;
+  document.getElementById('wopt-mansatisfied').className='wantan-type-opt'+(val==='mansatisfied'?' sel':'');
+  document.getElementById('wopt-mituan').className='wantan-type-opt'+(val==='mituan'?' sel':'');
+  if(val==='mituan'){
+    document.getElementById('opt-page').style.display='none';
+    selectType('op');
+  } else {
+    document.getElementById('opt-page').style.display='';
+  }
+}
 function selectType(val){
   document.querySelector('input[name="follow-type"][value="'+val+'"]').checked=true;
   document.getElementById('opt-page').className='type-opt'+(val==='page'?' sel-page':'');
@@ -772,7 +809,7 @@ async function runFlow(){
     const operator=document.getElementById('be2-name').value.trim();
     if(!username||!password){alert('請輸入 BE2 帳號與密碼');btn.disabled=false;btn.classList.remove('running');return;}
     if(!operator){alert('請輸入你的名字');btn.disabled=false;btn.classList.remove('running');return;}
-    const res=await fetch('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_ids:orderRaw,supplier_ids:supplierRaw,username,password,operator,follow_type:document.querySelector('input[name="follow-type"]:checked').value,op_dates:document.getElementById('op-dates').value.trim()})});
+    const res=await fetch('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_ids:orderRaw,supplier_ids:supplierRaw,username,password,operator,wantan_type:document.querySelector('input[name="wantan-type"]:checked').value,follow_type:document.querySelector('input[name="follow-type"]:checked').value,op_dates:document.getElementById('op-dates').value.trim()})});
     const data=await res.json();
     if(data.error){el.innerHTML=`<div class="result-card"><div class="result-header error"><div class="result-header-icon">❌</div><div class="result-header-title">錯誤</div></div><div class="progress-log"><div class="log-line error"><div class="log-icon">❌</div><div class="log-msg">${data.error}</div></div></div></div>`;return;}
     for(const r of data.results){const key=r.input_id||r.order_id;const card=cards[key];if(!card)continue;fillCard(card,r,'log-'+key);}
@@ -988,11 +1025,12 @@ const T = {
 zh: {
   'title':'工單自動化','stop':'⏹ 停止','help-btn':'？ 使用說明',
   'srv.connecting':'連線中...','srv.ok':'服務運作中','srv.err':'連線失敗',
-  'tab.wantan':'額滿挽單','tab.general':'一般工單','tab.notify':'對客通知',
+  'tab.wantan':'挽單','tab.general':'一般工單','tab.notify':'對客通知',
   'acct.title':'帳號設定','acct.user':'BE2 帳號','acct.pass':'BE2 密碼',
   'acct.show':'顯示','acct.name':'你的名字（顯示在紀錄上）','acct.remember':'記住帳號與名字（僅存在此瀏覽器）',
   'order.title':'訂單資訊','order.kkday':'KKday 訂單編號','order.supplier':'供應商編號',
   'order.hint':'⚡ 二選一填入即可，每行一筆，支援多筆',
+  'wantan.wtype':'挽單類型','wantan.mansatisfied':'額滿','wantan.mituan':'未成團',
   'wantan.type':'可改類型','wantan.bypage':'依商品頁面','wantan.byop':'依 OP 提供',
   'wantan.opdates':'OP 可改場次','wantan.btn':'▶ 開始自動建立工單',
   'notify.btn':'▶ 開始對客通知',
@@ -1040,6 +1078,7 @@ en: {
   'acct.show':'Show','acct.name':'Your Name (shown in logs)','acct.remember':'Remember account & name (browser only)',
   'order.title':'Order Info','order.kkday':'KKday Order ID','order.supplier':'Supplier ID',
   'order.hint':'⚡ Fill either field, one per line, supports multiple',
+  'wantan.wtype':'Recovery Type','wantan.mansatisfied':'Fully Booked','wantan.mituan':'Min. Not Met',
   'wantan.type':'Change Type','wantan.bypage':'By Product Page','wantan.byop':'By OP Provided',
   'wantan.opdates':'OP Available Dates','wantan.btn':'▶ Start Auto Ticket',
   'notify.btn':'▶ Start Customer Notify',
@@ -1092,15 +1131,17 @@ en: {
       <div class="help-section-title">📑 Feature Tabs Overview</div>
       <div class="help-row"><div class="help-row-icon" style="background:#FEF3C7">🟡</div>
         <div class="help-row-content"><div class="help-row-title">Waitlist Recovery <span class="help-tag help-tag-w">Waitlist</span></div>
-          <div class="help-row-desc">Enter order IDs (or supplier IDs) to auto-create waitlist tickets, post-push, and fill in the notification. Supports multiple orders — one per line.</div></div></div>
+          <div class="help-row-desc">Enter order IDs (or supplier IDs) to auto-create waitlist tickets, post-push, and fill in the notification. Supports multiple orders — one per line.<br>
+          <b>Fully Booked</b>: Category → Order Change → Fully Booked → Recovery. Choose By Product Page or By OP Provided.<br>
+          <b>Min. Not Met</b>: Category → Order Change → Supplier Notice → Reschedule. Fixed to By OP Provided.</div></div></div>
       <div class="help-row"><div class="help-row-icon" style="background:#E4EDE5">🟢</div>
         <div class="help-row-content"><div class="help-row-title">General Ticket <span class="help-tag help-tag-g">General</span></div>
           <div class="help-row-desc">Enter order IDs, select a ticket category (major / sub / detail), fill in notification content, then auto-create and post-push. Supports multiple orders — one per line.</div></div></div>
       <div class="help-row"><div class="help-row-icon" style="background:#FFE4E6">🔴</div>
         <div class="help-row-content"><div class="help-row-title">Customer Notify <span class="help-tag help-tag-n">Pre-trip</span></div>
           <div class="help-row-desc">Auto-creates a customer notification ticket and sends it. Two modes:<br>
-            <b>Single mode</b>: All orders share the same notification content.<br>
-            <b>Batch mode</b>: Each order has different content — upload an Excel template (see below).</div></div></div>
+            <b>Unified Notify</b>: All orders share the same notification content.<br>
+            <b>Individual Notify</b>: Each order has different content — upload an Excel template (see below).</div></div></div>
     </div>
     <div class="help-section">
       <div class="help-section-title">✏️ Entering Order IDs</div>
@@ -1124,13 +1165,17 @@ en: {
           <div class="help-row-desc">After confirming the count, click <b>▶ Start Batch Send</b> to process each order in sequence.</div></div></div>
     </div>
     <div class="help-section">
-      <div class="help-section-title">🔀 Change Type <span class="help-tag help-tag-w">Waitlist Recovery only</span></div>
-      <div class="help-row"><div class="help-row-icon" style="background:#FEF3C7">🛍️</div>
-        <div class="help-row-content"><div class="help-row-title">By Product Page</div>
-          <div class="help-row-desc">The system auto-detects the product page language and applies the matching notification template (Chinese / English / Japanese, etc.). <b>Recommended</b>.</div></div></div>
-      <div class="help-row"><div class="help-row-icon" style="background:#FEF3C7">✍️</div>
-        <div class="help-row-content"><div class="help-row-title">By OP Provided</div>
-          <div class="help-row-desc">A date input appears — enter the departure date provided by the OP. The system calculates the notification content accordingly.</div></div></div>
+      <div class="help-section-title">🔀 Recovery Type &amp; Change Type <span class="help-tag help-tag-w">Waitlist only</span></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#EAF5EE">📋</div>
+        <div class="help-row-content"><div class="help-row-title">Fully Booked</div>
+          <div class="help-row-desc">Ticket category: Order Change → Fully Booked → Recovery. Post-push note auto-filled as "額滿挽單".<br>
+          Two change type options:<br>
+          &nbsp;·<b> By Product Page</b>: auto-detects product page language and applies the matching template. <b>Recommended</b>.<br>
+          &nbsp;·<b> By OP Provided</b>: an input field appears — enter the available dates provided by OP.</div></div></div>
+      <div class="help-row"><div class="help-row-icon" style="background:#FEF3E8">📋</div>
+        <div class="help-row-content"><div class="help-row-title">Min. Not Met</div>
+          <div class="help-row-desc">Ticket category: Order Change → Supplier Notice → Reschedule. Post-push note auto-filled as "未成團挽單".<br>
+          Change type is fixed to <b>By OP Provided</b> (auto-selected). Enter available dates in the "OP Available Dates" field.</div></div></div>
     </div>
     <div class="help-section">
       <div class="help-section-title">📊 Results</div>
@@ -1158,7 +1203,7 @@ en: {
       <div class="help-row"><div class="help-row-icon" style="background:#F5F0E8">📜</div>
         <div class="help-row-content"><div class="help-row-title">View Past Executions</div>
           <div class="help-row-desc">The <b>History</b> section at the bottom auto-filters by the current tab:<br>
-          • Waitlist tab: shows waitlist records<br>
+          • Waitlist tab: shows waitlist records (Fully Booked &amp; Min. Not Met)<br>
           • General Ticket tab: shows general ticket records<br>
           • Customer Notify tab: shows notification records<br><br>
           Each record includes execution time, order ID, ticket ID, and result.</div></div></div>
@@ -1399,8 +1444,10 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
         <div class="help-row">
           <div class="help-row-icon" style="background:#FEF3C7">🟡</div>
           <div class="help-row-content">
-            <div class="help-row-title">額滿挽單 <span class="help-tag help-tag-w">挽單</span></div>
-            <div class="help-row-desc">輸入訂單編號（或供應商編號），自動建立挽單工單、後拋，並填入挽單通知內容。支援多筆同時執行，每行一筆。</div>
+            <div class="help-row-title">挽單 <span class="help-tag help-tag-w">挽單</span></div>
+            <div class="help-row-desc">輸入訂單編號（或供應商編號），自動建立挽單工單、後拋，並填入挽單通知。支援多筆同時執行，每行一筆。<br>
+              <b>額滿</b>：工單分類 訂單異動 → 額滿 → 挽單，可選依商品頁面或依OP提供。<br>
+              <b>未成團</b>：工單分類 訂單異動 → 供應商通知 → 改期，固定依OP提供。</div>
           </div>
         </div>
         <div class="help-row">
@@ -1415,8 +1462,8 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
           <div class="help-row-content">
             <div class="help-row-title">對客通知 <span class="help-tag help-tag-n">行前通知</span></div>
             <div class="help-row-desc">自動建立對客通知工單並發送。分為兩種模式：<br>
-              <b>單筆模式</b>：所有訂單使用相同通知內容，多筆填法與其他頁相同。<br>
-              <b>批次模式</b>：每筆訂單發送不同內容，需上傳 Excel 範本（見下方說明）。
+              <b>統一通知</b>：多筆訂單發送同一份通知內容，填法與其他頁相同。<br>
+              <b>個別通知</b>：每筆訂單發送不同內容，需上傳 Excel 範本（見下方說明）。
             </div>
           </div>
         </div>
@@ -1435,7 +1482,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
             </div>
           </div>
         </div>
-        <div class="help-tip">💡 額滿挽單 / 一般工單若輸入供應商編號，系統會自動查詢對應的 KKday 訂單編號再繼續執行。</div>
+        <div class="help-tip">💡 挽單 / 一般工單若輸入供應商編號，系統會自動查詢對應的 KKday 訂單編號再繼續執行。</div>
       </div>
 
       <!-- 批次對客通知 -->
@@ -1464,21 +1511,27 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
         </div>
       </div>
 
-      <!-- 可改類型（額滿挽單專屬） -->
+      <!-- 挽單類型 & 可改類型（挽單專屬） -->
       <div class="help-section">
-        <div class="help-section-title">🔀 可改類型 <span class="help-tag help-tag-w">額滿挽單專屬</span></div>
+        <div class="help-section-title">🔀 挽單類型 &amp; 可改類型 <span class="help-tag help-tag-w">挽單專屬</span></div>
         <div class="help-row">
-          <div class="help-row-icon" style="background:#FEF3C7">🛍️</div>
+          <div class="help-row-icon" style="background:#EAF5EE">📋</div>
           <div class="help-row-content">
-            <div class="help-row-title">依商品頁面</div>
-            <div class="help-row-desc">系統自動讀取商品頁面語系，套用對應語言的挽單通知模板（中文 / 英文 / 日文等）。<b>建議使用此選項</b>。</div>
+            <div class="help-row-title">額滿</div>
+            <div class="help-row-desc">工單分類：訂單異動 → 額滿 → 挽單。後拋備註自動填入「額滿挽單」。<br>
+              可改類型有兩種選項：<br>
+              &nbsp;・<b>依商品頁面</b>：自動讀取商品頁語系，套用對應語言通知模板。<b>建議使用</b>。<br>
+              &nbsp;・<b>依 OP 提供</b>：出現「OP 可改場次」輸入欄，填入 OP 提供的可改日期。
+            </div>
           </div>
         </div>
         <div class="help-row">
-          <div class="help-row-icon" style="background:#FEF3C7">✍️</div>
+          <div class="help-row-icon" style="background:#FEF3E8">📋</div>
           <div class="help-row-content">
-            <div class="help-row-title">依 OP 提供</div>
-            <div class="help-row-desc">選擇後會出現日期輸入欄，請填入 OP 提供的出發日期，系統依此計算通知內容。</div>
+            <div class="help-row-title">未成團</div>
+            <div class="help-row-desc">工單分類：訂單異動 → 供應商通知 → 改期。後拋備註自動填入「未成團挽單」。<br>
+              可改類型固定為<b>依 OP 提供</b>（自動選取），請在「OP 可改場次」欄填入可改日期。
+            </div>
           </div>
         </div>
       </div>
@@ -1532,7 +1585,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
           <div class="help-row-content">
             <div class="help-row-title">查看過往執行紀錄</div>
             <div class="help-row-desc">頁面下方的「<b>歷史紀錄</b>」區塊，會依目前所在分頁自動篩選對應的紀錄：<br>
-            • 額滿挽單頁：顯示挽單紀錄<br>
+            • 挽單頁：顯示挽單紀錄（額滿 &amp; 未成團）<br>
             • 一般工單頁：顯示一般工單紀錄<br>
             • 對客通知頁：顯示行前通知紀錄<br><br>
             每筆紀錄包含執行時間、訂單編號、工單 ID 及執行結果。</div>
