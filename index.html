@@ -487,7 +487,7 @@ textarea::placeholder { color: var(--text3); }
             <label class="gen-notify-opt"><input type="radio" name="gen-notify" id="gen-notify-no" value="no" checked onchange="toggleGenNotify()"> <span data-i18n="gen.notify-no">否</span></label>
           </div>
           <label id="gen-subject-hint" style="font-weight:400;color:var(--text3);font-size:11px;display:none" data-i18n="gen.subject-hint">通知主旨會自動帶入工單分類路徑</label>
-          <textarea id="gen-notif-content" data-i18n-placeholder="ph.gen-content" placeholder="填入通知內容（請輸入中英版本 or 英文）&#10;Please enter the notification content in Chinese/English." style="min-height:100px"></textarea>
+          <textarea id="gen-notif-content" data-i18n-placeholder="ph.gen-content" placeholder="填入需請客服協助內容" style="min-height:100px"></textarea>
         </div>
         <button class="btn-run" id="gen-btn" onclick="runGeneral()">
           <div class="spinner"></div>
@@ -1022,7 +1022,7 @@ zh: {
   'hist.success':'成功','hist.fail':'失敗','pw.show':'顯示','pw.hide':'隱藏','conn.fail':'無法連線伺服器：',
   'ph.name':'例：Winnie','ph.supplier':'每行對應一筆供應商編號',
   'ph.notif':'填入要通知的內容，例如：\n請注意集合時間為 09:00，集合地點：XXX\nPlease note the meeting time is 09:00 at XXX',
-  'ph.cat-search':'搜尋分類...','ph.gen-content':'填入通知內容（請輸入中英版本 or 英文）\nPlease enter the notification content in Chinese/English.',
+  'ph.cat-search':'搜尋分類...','ph.gen-content':'填入需請客服協助內容',
   'step.w.1':'新增工單','step.w.2':'燈泡帶入<br>最晚處理','step.w.3':'開始處理',
   'step.w.4':'後拋<br>額滿挽單','step.w.5':'燈泡帶入<br>後拋截止','step.w.6':'偵測語系<br>填通知','step.w.7':'確認完成',
   'step.n.1':'確認<br>已處理','step.n.2':'新增工單','step.n.3':'燈泡帶入<br>最晚處理',
@@ -1069,7 +1069,7 @@ en: {
   'hist.success':'Success','hist.fail':'Failed','pw.show':'Show','pw.hide':'Hide','conn.fail':'Failed to connect: ',
   'ph.name':'e.g. Winnie','ph.supplier':'One supplier ID per line',
   'ph.notif':'Enter notification content, e.g.:\n請注意集合時間為 09:00，集合地點：XXX\nPlease note the meeting time is 09:00 at XXX',
-  'ph.cat-search':'Search category...','ph.gen-content':'Enter notification content (Chinese+English or English only).',
+  'ph.cat-search':'Search category...','ph.gen-content':'Enter CS assistance content',
   'step.w.1':'Create<br>Ticket','step.w.2':'Auto-fill<br>Deadline','step.w.3':'Start<br>Process',
   'step.w.4':'Post-push<br>Waitlist','step.w.5':'Auto-fill<br>Follow-up','step.w.6':'Detect Lang<br>Fill Notify','step.w.7':'Confirm<br>Done',
   'step.n.1':'Confirm<br>Processed','step.n.2':'Create<br>Ticket','step.n.3':'Auto-fill<br>Deadline',
