@@ -1073,7 +1073,7 @@ zh: {
 en: {
   'title':'Ticket Automation','stop':'⏹ Stop','help-btn':'？ Help',
   'srv.connecting':'Connecting...','srv.ok':'Server Running','srv.err':'Connection Failed',
-  'tab.wantan':'Waitlist Recovery','tab.general':'General Ticket','tab.notify':'Customer Notify',
+  'tab.wantan':'Recovery','tab.general':'General Ticket','tab.notify':'Customer Notify',
   'acct.title':'Account Settings','acct.user':'BE2 Account','acct.pass':'BE2 Password',
   'acct.show':'Show','acct.name':'Your Name (shown in logs)','acct.remember':'Remember account & name (browser only)',
   'order.title':'Order Info','order.kkday':'KKday Order ID','order.supplier':'Supplier ID',
@@ -1110,7 +1110,7 @@ en: {
   'ph.notif':'Enter notification content, e.g.:\n請注意集合時間為 09:00，集合地點：XXX\nPlease note the meeting time is 09:00 at XXX',
   'ph.cat-search':'Search category...','ph.gen-content':'Enter CS assistance content',
   'step.w.1':'Create<br>Ticket','step.w.2':'Auto-fill<br>Deadline','step.w.3':'Start<br>Process',
-  'step.w.4':'Post-push<br>Waitlist','step.w.5':'Auto-fill<br>Follow-up','step.w.6':'Detect Lang<br>Fill Notify','step.w.7':'Confirm<br>Done',
+  'step.w.4':'Post-push<br>Recovery','step.w.5':'Auto-fill<br>Follow-up','step.w.6':'Detect Lang<br>Fill Notify','step.w.7':'Confirm<br>Done',
   'step.n.1':'Confirm<br>Processed','step.n.2':'Create<br>Ticket','step.n.3':'Auto-fill<br>Deadline',
   'step.n.4':'Start<br>Process','step.n.5':'Customer Notify<br>Fill Subject','step.n.6':'Confirm<br>Send','step.n.7':'Close<br>Ticket','step.n.8':'Order<br>Note',
   'step.g.1':'Login<br>Get Date','step.g.2':'Go to<br>CS Console','step.g.3':'Create Ticket<br>Fill Order ID',
@@ -1130,7 +1130,7 @@ en: {
     <div class="help-section">
       <div class="help-section-title">📑 Feature Tabs Overview</div>
       <div class="help-row"><div class="help-row-icon" style="background:#FEF3C7">🟡</div>
-        <div class="help-row-content"><div class="help-row-title">Waitlist Recovery <span class="help-tag help-tag-w">Waitlist</span></div>
+        <div class="help-row-content"><div class="help-row-title">Recovery <span class="help-tag help-tag-w">Recovery</span></div>
           <div class="help-row-desc">Enter order IDs (or supplier IDs) to auto-create waitlist tickets, post-push, and fill in the notification. Supports multiple orders — one per line.<br>
           <b>Fully Booked</b>: Category → Order Change → Fully Booked → Recovery. Choose By Product Page or By OP Provided.<br>
           <b>Min. Not Met</b>: Category → Order Change → Supplier Notice → Reschedule. Fixed to By OP Provided.</div></div></div>
@@ -1150,7 +1150,7 @@ en: {
           <div class="help-row-desc"><b>Fill in either field</b> — one entry per line. If both fields are filled, each row's KKday ID and Supplier ID are treated as the same order.<br><br>
             Example (multiple):<br>
             <code style="background:#F5F0E8;padding:4px 8px;border-radius:5px;font-size:11px;display:inline-block;margin-top:4px">26KK231600728<br>25KK258710416<br>25KK269680760</code></div></div></div>
-      <div class="help-tip">💡 For Waitlist Recovery / General Ticket, entering a Supplier ID will auto-look up the KKday Order ID before proceeding.</div>
+      <div class="help-tip">💡 For Recovery / General Ticket, entering a Supplier ID will auto-look up the KKday Order ID before proceeding.</div>
     </div>
     <div class="help-section">
       <div class="help-section-title">📂 Batch Customer Notify (different content per order)</div>
@@ -1165,7 +1165,7 @@ en: {
           <div class="help-row-desc">After confirming the count, click <b>▶ Start Batch Send</b> to process each order in sequence.</div></div></div>
     </div>
     <div class="help-section">
-      <div class="help-section-title">🔀 Recovery Type &amp; Change Type <span class="help-tag help-tag-w">Waitlist only</span></div>
+      <div class="help-section-title">🔀 Recovery Type &amp; Change Type <span class="help-tag help-tag-w">Recovery only</span></div>
       <div class="help-row"><div class="help-row-icon" style="background:#EAF5EE">📋</div>
         <div class="help-row-content"><div class="help-row-title">Fully Booked</div>
           <div class="help-row-desc">Ticket category: Order Change → Fully Booked → Recovery. Post-push note auto-filled as "額滿挽單".<br>
@@ -1203,7 +1203,7 @@ en: {
       <div class="help-row"><div class="help-row-icon" style="background:#F5F0E8">📜</div>
         <div class="help-row-content"><div class="help-row-title">View Past Executions</div>
           <div class="help-row-desc">The <b>History</b> section at the bottom auto-filters by the current tab:<br>
-          • Waitlist tab: shows waitlist records (Fully Booked &amp; Min. Not Met)<br>
+          • Recovery tab: shows recovery records (Fully Booked &amp; Min. Not Met)<br>
           • General Ticket tab: shows general ticket records<br>
           • Customer Notify tab: shows notification records<br><br>
           Each record includes execution time, order ID, ticket ID, and result.</div></div></div>
