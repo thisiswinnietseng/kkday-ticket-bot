@@ -352,17 +352,23 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 await page.click("button:has-text('查詢')")
                 await page.wait_for_timeout(2500)
                 rows = page.locator("table tbody tr")
-                if await rows.count() > 0:
-                    row_text = await rows.first.inner_text()
-                    match = re.search(r'26KK\w+', row_text)
-                    if match:
-                        resolved_order_id = match.group(0)
+                row_count = await rows.count()
+                if row_count > 0:
+                    found_ids = []
+                    for i in range(row_count):
+                        row_text = await rows.nth(i).inner_text()
+                        for m in re.findall(r'\d{2}KK\w+', row_text):
+                            if m not in found_ids:
+                                found_ids.append(m)
+                    if len(found_ids) == 1:
+                        resolved_order_id = found_ids[0]
                         push(f'找到訂單編號：{resolved_order_id}', 'ok')
+                    elif len(found_ids) > 1:
+                        raise Exception(f'供應商編號 {supplier_order_id} 對應多筆訂單（{", ".join(found_ids)}），請直接填入 KKday 訂單編號欄位')
                     else:
                         raise Exception(f'供應商編號 {supplier_order_id} 找不到對應的 KKday 訂單編號，請改填入 KKday 訂單編號欄位')
                 else:
                     raise Exception(f'供應商編號 {supplier_order_id} 查無訂單，請改填入 KKday 訂單編號欄位')
-
             if not resolved_order_id:
                 raise Exception('請輸入 KKday 訂單編號或供應商編號')
 
@@ -743,17 +749,23 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
                 await page.click("button:has-text(\'查詢\')")
                 await page.wait_for_timeout(2500)
                 rows = page.locator("table tbody tr")
-                if await rows.count() > 0:
-                    row_text = await rows.first.inner_text()
-                    match = re.search(r'26KK\w+', row_text)
-                    if match:
-                        resolved_order_id = match.group(0)
+                row_count = await rows.count()
+                if row_count > 0:
+                    found_ids = []
+                    for i in range(row_count):
+                        row_text = await rows.nth(i).inner_text()
+                        for m in re.findall(r'\d{2}KK\w+', row_text):
+                            if m not in found_ids:
+                                found_ids.append(m)
+                    if len(found_ids) == 1:
+                        resolved_order_id = found_ids[0]
                         push(f'找到訂單編號：{resolved_order_id}', 'ok')
+                    elif len(found_ids) > 1:
+                        raise Exception(f'供應商編號 {supplier_order_id} 對應多筆訂單（{", ".join(found_ids)}），請直接填入 KKday 訂單編號欄位')
                     else:
                         raise Exception(f'供應商編號 {supplier_order_id} 找不到對應的 KKday 訂單編號，請改填入 KKday 訂單編號欄位')
                 else:
                     raise Exception(f'供應商編號 {supplier_order_id} 查無訂單，請改填入 KKday 訂單編號欄位')
-
             if not resolved_order_id:
                 raise Exception('請輸入 KKday 訂單編號或供應商編號')
 
@@ -1053,17 +1065,23 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
                 await page.click("button:has-text('查詢')")
                 await page.wait_for_timeout(2500)
                 rows = page.locator("table tbody tr")
-                if await rows.count() > 0:
-                    row_text = await rows.first.inner_text()
-                    match = re.search(r'26KK\w+', row_text)
-                    if match:
-                        resolved_order_id = match.group(0)
+                row_count = await rows.count()
+                if row_count > 0:
+                    found_ids = []
+                    for i in range(row_count):
+                        row_text = await rows.nth(i).inner_text()
+                        for m in re.findall(r'\d{2}KK\w+', row_text):
+                            if m not in found_ids:
+                                found_ids.append(m)
+                    if len(found_ids) == 1:
+                        resolved_order_id = found_ids[0]
                         push(f'找到訂單編號：{resolved_order_id}', 'ok')
+                    elif len(found_ids) > 1:
+                        raise Exception(f'供應商編號 {supplier_order_id} 對應多筆訂單（{", ".join(found_ids)}），請直接填入 KKday 訂單編號欄位')
                     else:
                         raise Exception(f'供應商編號 {supplier_order_id} 找不到對應的 KKday 訂單編號，請改填入 KKday 訂單編號欄位')
                 else:
                     raise Exception(f'供應商編號 {supplier_order_id} 查無訂單，請改填入 KKday 訂單編號欄位')
-
             if not resolved_order_id:
                 raise Exception('請輸入 KKday 訂單編號或供應商編號')
 
