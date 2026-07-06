@@ -457,7 +457,7 @@ textarea::placeholder { color: var(--text3); }
           <li data-i18n="batch.step3">確認解析筆數後，點擊「開始批次發送」</li>
         </ol>
         <div class="batch-actions">
-          <button class="btn-sm btn-sm-outline" onclick="downloadNotifTemplate()" data-i18n="batch.download">⬇ 下載範本</button>
+          <button class="btn-sm btn-sm-outline" onclick="window.open('https://docs.google.com/spreadsheets/d/1BpHOas9IkANnX6nbl3avAQkuEt4fh4TrMEH4PJmR_r8/copy','_blank')" data-i18n="batch.download">📋 取得範本</button>
           <label class="btn-sm btn-sm-file" for="batch-file-input" style="cursor:pointer" data-i18n="batch.select">📂 選擇 Excel</label>
           <input type="file" id="batch-file-input" accept=".xlsx,.xls" style="display:none" onchange="onBatchFileSelected(this)">
           <span class="batch-file-info" id="batch-file-info" data-i18n="batch.nofile">尚未選擇檔案</span>
@@ -1036,10 +1036,10 @@ zh: {
   'notify.btn':'▶ 開始對客通知',
   'notify.content-label':'對客通知內容 <span style="font-weight:400;color:var(--text3)">（請輸入中英版本 or 英文）</span>',
   'batch.title':'批次上傳（各單不同內容）',
-  'batch.step1':'點擊「下載範本」，依格式填入訂單編號與各單通知內容',
+  'batch.step1':'點擊「取得範本」，建立副本後依格式填入訂單編號與各單通知內容',
   'batch.step2':'點擊「選擇 Excel」上傳填好的檔案',
   'batch.step3':'確認解析筆數後，點擊「開始批次發送」',
-  'batch.download':'⬇ 下載範本','batch.select':'📂 選擇 Excel',
+  'batch.download':'📋 取得範本','batch.select':'📂 選擇 Excel',
   'batch.nofile':'尚未選擇檔案','batch.parsed-pre':'已解析',
   'batch.parsed-post':'筆資料，工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項',
   'batch.btn':'▶ 開始批次發送',
@@ -1084,10 +1084,10 @@ en: {
   'notify.btn':'▶ Start Customer Notify',
   'notify.content-label':'Customer Notification <span style="font-weight:400;color:var(--text3)">(enter in Chinese+English or English only)</span>',
   'batch.title':'Batch Upload (different content per order)',
-  'batch.step1':'Click "Download Template", fill in order IDs and notification content per order',
+  'batch.step1':'Click "Get Template", make a copy, then fill in order IDs and notification content',
   'batch.step2':'Click "Select Excel" to upload the completed file',
   'batch.step3':'Confirm parsed count, then click "Start Batch Send"',
-  'batch.download':'⬇ Download Template','batch.select':'📂 Select Excel',
+  'batch.download':'📋 Get Template','batch.select':'📂 Select Excel',
   'batch.nofile':'No file selected','batch.parsed-pre':'Parsed',
   'batch.parsed-post':'records. Category: Supplier self-handled → Supplier notify → Pre-trip notice',
   'batch.btn':'▶ Start Batch Send',
@@ -1155,8 +1155,8 @@ en: {
     <div class="help-section">
       <div class="help-section-title">📂 Batch Customer Notify (different content per order)</div>
       <div class="help-row"><div class="help-row-icon" style="background:#EDE9FE">1️⃣</div>
-        <div class="help-row-content"><div class="help-row-title">Download Template</div>
-          <div class="help-row-desc">Click <b>⬇ Download Template</b> to get the Excel file. Column A: KKday Order ID. Column B: notification content (Chinese+English or English only).</div></div></div>
+        <div class="help-row-content"><div class="help-row-title">Get Template</div>
+          <div class="help-row-desc">Click <b>📋 Get Template</b> to open a Google Sheet. Make a copy, then fill in your data. Column A: KKday Order ID. Column B: notification content (Chinese+English or English only).</div></div></div>
       <div class="help-row"><div class="help-row-icon" style="background:#EDE9FE">2️⃣</div>
         <div class="help-row-content"><div class="help-row-title">Upload Excel</div>
           <div class="help-row-desc">Click <b>📂 Select Excel</b> to upload the completed file. The page shows "Parsed N records" to confirm the count.</div></div></div>
@@ -1491,8 +1491,8 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
         <div class="help-row">
           <div class="help-row-icon" style="background:#EDE9FE">1️⃣</div>
           <div class="help-row-content">
-            <div class="help-row-title">下載範本</div>
-            <div class="help-row-desc">點擊「<b>⬇ 下載範本</b>」取得 Excel 範本。A 欄填 KKday 訂單編號，B 欄填各單通知內容（中英版本或純英文）。</div>
+            <div class="help-row-title">取得範本</div>
+            <div class="help-row-desc">點擊「<b>📋 取得範本</b>」開啟 Google Sheet，建立副本後填入資料。A 欄填 KKday 訂單編號，B 欄填各單通知內容（中英版本或純英文）。</div>
           </div>
         </div>
         <div class="help-row">
