@@ -973,7 +973,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             if not found_l3:
                 raise Exception('找不到「轉達行前注意事項」選項，請確認工單分類下拉是否正確展開')
             push('轉達行前注意事項 ✓')
-            await page.wait_for_timeout(1500)
+            await page.wait_for_timeout(2500)
 
             # 最晚處理時間 - 點燈泡自動帶入
             push('點擊最晚處理時間燈泡...')
