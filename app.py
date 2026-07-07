@@ -573,13 +573,17 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             # 最晚處理時間 - 點燈泡自動帶入
             push('點擊最晚處理時間燈泡...')
             await page.locator("button[class*='k-btn--orange']").first.click()
-            await page.wait_for_timeout(3000)
-            tdl = await page.locator("input[placeholder='Select date']").first.input_value()
-            if not tdl:
+            try:
+                await page.wait_for_function("() => !!document.querySelector(\"input[placeholder='Select date']\")?.value", timeout=10000)
+            except:
                 push('燈泡未帶入，重試一次...')
+                await page.wait_for_timeout(1000)
                 await page.locator("button[class*='k-btn--orange']").first.click()
-                await page.wait_for_timeout(3000)
-                tdl = await page.locator("input[placeholder='Select date']").first.input_value()
+                try:
+                    await page.wait_for_function("() => !!document.querySelector(\"input[placeholder='Select date']\")?.value", timeout=10000)
+                except:
+                    pass
+            tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
                 raise Exception('最晚處理時間燈泡點擊後仍為空，請確認工單分類與商品類型已選擇')
             push(f'最晚處理時間：{tdl}')
@@ -978,13 +982,17 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             # 最晚處理時間 - 點燈泡自動帶入
             push('點擊最晚處理時間燈泡...')
             await page.locator("button[class*='k-btn--orange']").first.click()
-            await page.wait_for_timeout(3000)
-            tdl = await page.locator("input[placeholder='Select date']").first.input_value()
-            if not tdl:
+            try:
+                await page.wait_for_function("() => !!document.querySelector(\"input[placeholder='Select date']\")?.value", timeout=10000)
+            except:
                 push('燈泡未帶入，重試一次...')
+                await page.wait_for_timeout(1000)
                 await page.locator("button[class*='k-btn--orange']").first.click()
-                await page.wait_for_timeout(3000)
-                tdl = await page.locator("input[placeholder='Select date']").first.input_value()
+                try:
+                    await page.wait_for_function("() => !!document.querySelector(\"input[placeholder='Select date']\")?.value", timeout=10000)
+                except:
+                    pass
+            tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
                 raise Exception('最晚處理時間燈泡點擊後仍為空，請確認工單分類與商品類型已選擇')
             push(f'最晚處理時間：{tdl}', 'ok')
