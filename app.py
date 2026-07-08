@@ -492,6 +492,14 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             await order_input.fill(resolved_order_id)
             await page.keyboard.press('Tab')
             await page.wait_for_timeout(1000)
+            # 等 BE2 載入訂單資料（商品 ID 帶入 = 資料已就緒）
+            try:
+                await page.wait_for_function(
+                    "() => { const inputs = document.querySelectorAll(\"input[placeholder='Please enter text']\"); return inputs.length > 1 && inputs[1]?.value?.trim() !== ''; }",
+                    timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(2000)
 
             # 選工單分類（全部用 JS，避免 get_by_text 30s timeout）
             if wantan_type == 'mituan':
@@ -931,6 +939,14 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             await order_input.fill(resolved_order_id)
             await page.keyboard.press('Tab')
             await page.wait_for_timeout(1000)
+            # 等 BE2 載入訂單資料（商品 ID 帶入 = 資料已就緒）
+            try:
+                await page.wait_for_function(
+                    "() => { const inputs = document.querySelectorAll(\"input[placeholder='Please enter text']\"); return inputs.length > 1 && inputs[1]?.value?.trim() !== ''; }",
+                    timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(2000)
 
             # 選工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
             push('選工單分類：供應商自理訊息→供應商通知→轉達行前注意事項...')
