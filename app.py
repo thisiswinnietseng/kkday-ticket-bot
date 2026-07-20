@@ -530,7 +530,15 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             if not found_l1:
                 raise Exception('找不到「訂單異動」分類選項')
             push('訂單異動 ✓')
-            await page.wait_for_timeout(800)
+            # 等 L2 選項出現再點
+            l2_keyword = '供應商通知' if wantan_type == 'mituan' else '額滿'
+            try:
+                await page.wait_for_function(
+                    f"() => Array.from(document.querySelectorAll('li')).some(e => e.textContent.trim().includes('{l2_keyword}') && e.offsetParent !== null)",
+                    timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(1500)
 
             if wantan_type == 'mituan':
                 # L2：供應商通知
@@ -543,7 +551,14 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 if not found_l2:
                     raise Exception('找不到「供應商通知」分類選項')
                 push('供應商通知 ✓')
-                await page.wait_for_timeout(400)
+                # 等 L3 改期出現
+                try:
+                    await page.wait_for_function(
+                        "() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '改期' && e.offsetParent !== null)",
+                        timeout=8000
+                    )
+                except:
+                    await page.wait_for_timeout(1000)
                 # L3：改期
                 found_l3 = await page.evaluate("""() => {
                     const els = Array.from(document.querySelectorAll('div.text-ellipsis, li, span'));
@@ -565,7 +580,14 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 if not found_l2:
                     raise Exception('找不到「額滿 / 售罄」分類選項')
                 push('額滿 ✓')
-                await page.wait_for_timeout(800)
+                # 等 L3 挽單出現
+                try:
+                    await page.wait_for_function(
+                        "() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '挽單' && e.offsetParent !== null)",
+                        timeout=8000
+                    )
+                except:
+                    await page.wait_for_timeout(1500)
                 # L3：挽單
                 found_l3 = await page.evaluate("""() => {
                     const els = Array.from(document.querySelectorAll('li, div, span'));
@@ -973,7 +995,14 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             if not found_l1:
                 raise Exception('找不到「供應商自理訊息」分類選項，請確認下拉選單已展開')
             push('供應商自理訊息 ✓')
-            await page.wait_for_timeout(400)
+            # 等 L2 供應商通知出現
+            try:
+                await page.wait_for_function(
+                    "() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '供應商通知' && e.offsetParent !== null)",
+                    timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(1000)
             found_l2 = await page.evaluate("""() => {
                 const els = Array.from(document.querySelectorAll('li, div, span'));
                 const el = els.find(e => e.textContent.trim() === '供應商通知' && e.offsetParent !== null);
@@ -983,7 +1012,14 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             if not found_l2:
                 raise Exception('找不到「供應商通知」分類選項，請確認下拉選單已展開')
             push('供應商通知 ✓')
-            await page.wait_for_timeout(600)
+            # 等 L3 轉達行前注意事項出現
+            try:
+                await page.wait_for_function(
+                    "() => Array.from(document.querySelectorAll('div.text-ellipsis, li, span')).some(e => e.textContent.trim() === '轉達行前注意事項' && e.offsetParent !== null)",
+                    timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(1000)
             found_l3 = await page.evaluate("""() => {
                 const els = Array.from(document.querySelectorAll('div.text-ellipsis, li, span'));
                 const el = els.find(e => e.textContent.trim() === '轉達行前注意事項' && e.offsetParent !== null);
@@ -1317,7 +1353,14 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             if not found_l1:
                 raise Exception(f'找不到「{cat_l1}」分類選項，請確認下拉選單已展開')
             push(f'{cat_l1} ✓')
-            await page.wait_for_timeout(500)
+            # 等 L2 出現
+            try:
+                await page.wait_for_function(
+                    "(l2) => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === l2 && e.offsetParent !== null)",
+                    cat_l2, timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(1000)
             found_l2 = await page.evaluate("""(l2) => {
                 const els = Array.from(document.querySelectorAll('li, div, span'));
                 const el = els.find(e => e.textContent.trim() === l2 && e.offsetParent !== null);
@@ -1327,7 +1370,14 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             if not found_l2:
                 raise Exception(f'找不到「{cat_l2}」分類選項，請確認 {cat_l1} 已選擇')
             push(f'{cat_l2} ✓')
-            await page.wait_for_timeout(600)
+            # 等 L3 出現
+            try:
+                await page.wait_for_function(
+                    "(l3) => Array.from(document.querySelectorAll('div.text-ellipsis, li, span')).some(e => e.textContent.trim() === l3 && e.offsetParent !== null)",
+                    cat_l3, timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(1000)
             found_l3 = await page.evaluate("""(l3) => {
                 const els = Array.from(document.querySelectorAll('div.text-ellipsis, li, span'));
                 const el = els.find(e => e.textContent.trim() === l3 && e.offsetParent !== null);
