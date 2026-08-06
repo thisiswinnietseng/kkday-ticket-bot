@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KKday 工單自動化</title>
+<title>KKday 對CS工單自動化</title>
 <style>
 :root {
   --success: #22C55E;
@@ -322,7 +322,7 @@ textarea::placeholder { color: var(--text3); }
 <div class="topbar">
   <div class="topbar-logo">
     <div class="topbar-logomark">KKday</div>
-    <span class="topbar-title" data-i18n="title">工單自動化</span>
+    <span class="topbar-title" data-i18n="title">對CS工單自動化</span>
   </div>
   <div class="topbar-spacer"></div>
   <div class="topbar-queue" id="queue-status"><span id="queue-text"></span></div>
@@ -1023,7 +1023,7 @@ let _lang = localStorage.getItem('lang') || 'zh';
 let _helpBodyZH = '';
 const T = {
 zh: {
-  'title':'工單自動化','stop':'⏹ 停止','help-btn':'？ 使用說明',
+  'title':'對CS工單自動化','stop':'⏹ 停止','help-btn':'？ 使用說明',
   'srv.connecting':'連線中...','srv.ok':'服務運作中','srv.err':'連線失敗',
   'tab.wantan':'挽單','tab.general':'一般工單','tab.notify':'對客通知',
   'acct.title':'帳號設定','acct.user':'BE2 帳號','acct.pass':'BE2 密碼',
@@ -1068,10 +1068,10 @@ zh: {
   'step.g.1':'登入<br>取得日期','step.g.2':'前往<br>客服操作台','step.g.3':'新增工單<br>填訂單編號',
   'step.g.4':'選工單分類<br>（動態）','step.g.5':'燈泡帶入<br>最晚處理','step.g.6':'確認建立<br>開始處理',
   'step.g.7':'後拋<br>填備註','step.g.8':'填通知<br>主旨＋內容','step.g.9':'訂單備註<br>重置進度',
-  'help.title':'📋 工單自動化 使用說明書','help.subtitle':'KKday BE2 工單自動化工具 · 操作指南'
+  'help.title':'📋 對CS工單自動化 使用說明書','help.subtitle':'KKday BE2 對CS工單自動化工具 · 操作指南'
 },
 en: {
-  'title':'Ticket Automation','stop':'⏹ Stop','help-btn':'？ Help',
+  'title':'CS Ticket Automation','stop':'⏹ Stop','help-btn':'？ Help',
   'srv.connecting':'Connecting...','srv.ok':'Server Running','srv.err':'Connection Failed',
   'tab.wantan':'Recovery','tab.general':'General Ticket','tab.notify':'Customer Notify',
   'acct.title':'Account Settings','acct.user':'BE2 Account','acct.pass':'BE2 Password',
@@ -1116,7 +1116,7 @@ en: {
   'step.g.1':'Login<br>Get Date','step.g.2':'Go to<br>CS Console','step.g.3':'Create Ticket<br>Fill Order ID',
   'step.g.4':'Select Category<br>(Dynamic)','step.g.5':'Auto-fill<br>Deadline','step.g.6':'Confirm Create<br>Start Process',
   'step.g.7':'Post-push<br>Fill Note','step.g.8':'Fill Notify<br>Subject+Content','step.g.9':'Order Note<br>Reset Progress',
-  'help.title':'📋 Ticket Automation User Guide','help.subtitle':'KKday BE2 Ticket Automation · Operation Guide',
+  'help.title':'📋 CS Ticket Automation User Guide','help.subtitle':'KKday BE2 CS Ticket Automation · Operation Guide',
   'help.body':`
     <div class="help-section">
       <div class="help-section-title">⚙️ Account Settings</div>
@@ -1412,8 +1412,8 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
   <div class="help-modal">
     <div class="help-modal-head">
       <div>
-        <h2>📋 工單自動化 使用說明書</h2>
-        <p>KKday BE2 工單自動化工具 · 操作指南</p>
+        <h2>📋 對CS工單自動化 使用說明書</h2>
+        <p>KKday BE2 對CS工單自動化工具 · 操作指南</p>
       </div>
       <button class="help-close" onclick="closeHelp()">✕</button>
     </div>
