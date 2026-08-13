@@ -525,7 +525,14 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                     }
                 }
             }""")
-            await page.wait_for_timeout(800)
+            # 等 L1 訂單異動出現
+            try:
+                await page.wait_for_function(
+                    "() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '訂單異動' && e.offsetParent !== null)",
+                    timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(1500)
             # L1：訂單異動
             found_l1 = await page.evaluate("""() => {
                 const els = Array.from(document.querySelectorAll('li, div, span'));
@@ -997,7 +1004,14 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
                     }
                 }
             }""")
-            await page.wait_for_timeout(800)
+            # 等 L1 供應商自理訊息出現
+            try:
+                await page.wait_for_function(
+                    "() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '供應商自理訊息' && e.offsetParent !== null)",
+                    timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(1500)
             found_l1 = await page.evaluate("""() => {
                 const els = Array.from(document.querySelectorAll('li, div, span'));
                 const el = els.find(e => e.textContent.trim() === '供應商自理訊息' && e.offsetParent !== null);
@@ -1361,7 +1375,14 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
                     }
                 }
             }""")
-            await page.wait_for_timeout(1000)
+            # 等 L1 選項出現再點
+            try:
+                await page.wait_for_function(
+                    "(l1) => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === l1 && e.offsetParent !== null)",
+                    cat_l1, timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(1500)
             found_l1 = await page.evaluate("""(l1) => {
                 const els = Array.from(document.querySelectorAll('li, div, span'));
                 const el = els.find(e => e.textContent.trim() === l1 && e.offsetParent !== null);
