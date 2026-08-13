@@ -515,17 +515,14 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             }""")
             await page.wait_for_timeout(500)
 
-            # 診斷：印出 工單分類 附近 HTML
+            # 診斷：列出所有 label 文字，確認 工單分類 的實際字串
             diag = await page.evaluate("""() => {
                 const labels = Array.from(document.querySelectorAll('label'));
-                const lbl = labels.find(e => e.textContent.trim() === '工單分類');
-                if (!lbl) return 'label not found';
-                let el = lbl;
-                for (let i = 0; i < 5; i++) { el = el.parentElement; if (!el) break; }
-                return el ? el.innerHTML.replace(/\\s+/g, ' ').substring(0, 600) : 'parent not found';
+                const texts = labels.map(e => JSON.stringify(e.textContent.trim())).join(', ');
+                const lbl = labels.find(e => e.textContent.includes('工單分類'));
+                return lbl ? 'found: ' + JSON.stringify(lbl.textContent.trim()) : 'not found. labels: ' + texts.substring(0, 400);
             }""")
-            push(f'[DEBUG] {diag[:300]}')
-            await page.screenshot(path='/tmp/be2_form_debug.png')
+            push(f'[DEBUG] {diag[:400]}')
 
             # 選工單分類（全部用 JS，避免 get_by_text 30s timeout）
             if wantan_type == 'mituan':
@@ -533,7 +530,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             else:
                 push('選工單分類：訂單異動→額滿→挽單...')
             await page.evaluate("""() => {
-                const lbl = Array.from(document.querySelectorAll('label')).find(e => e.textContent.trim() === '工單分類');
+                const lbl = Array.from(document.querySelectorAll('label')).find(e => e.textContent.includes('工單分類'));
                 if (!lbl) return;
                 const wrapper = lbl.closest('.k-form-field-wrapper') || lbl.closest('.k-component') || lbl.parentElement;
                 if (!wrapper) return;
@@ -1017,7 +1014,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             # 選工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
             push('選工單分類：供應商自理訊息→供應商通知→轉達行前注意事項...')
             await page.evaluate("""() => {
-                const lbl = Array.from(document.querySelectorAll('label')).find(e => e.textContent.trim() === '工單分類');
+                const lbl = Array.from(document.querySelectorAll('label')).find(e => e.textContent.includes('工單分類'));
                 if (!lbl) return;
                 const wrapper = lbl.closest('.k-form-field-wrapper') || lbl.closest('.k-component') || lbl.parentElement;
                 if (!wrapper) return;
@@ -1404,7 +1401,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             # 點開工單分類 cascader（先試 Playwright locator，失敗再 JS）
             push('開啟工單分類下拉...')
             await page.evaluate("""() => {
-                const lbl = Array.from(document.querySelectorAll('label')).find(e => e.textContent.trim() === '工單分類');
+                const lbl = Array.from(document.querySelectorAll('label')).find(e => e.textContent.includes('工單分類'));
                 if (!lbl) return;
                 const wrapper = lbl.closest('.k-form-field-wrapper') || lbl.closest('.k-component') || lbl.parentElement;
                 if (!wrapper) return;
