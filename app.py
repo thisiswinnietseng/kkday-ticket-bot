@@ -485,7 +485,13 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
 
             # 選「有訂單」radio button
             await page.locator("label:has-text('有訂單')").click()
-            await page.wait_for_timeout(1000)
+            await page.wait_for_timeout(500)
+            # 工單來源：Email進線
+            await page.locator("label:has-text('Email 進線')").click()
+            await page.wait_for_timeout(300)
+            # 進線方：供應商
+            await page.locator("label:has-text('供應商')").click()
+            await page.wait_for_timeout(500)
 
             # 填訂單編號
             order_input = page.locator("input[placeholder='Please enter text']").first
@@ -956,7 +962,13 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             await page.click("button:has-text(\'新增工單\')")
             await page.wait_for_timeout(2000)
             await page.locator("label:has-text(\'有訂單\')").click()
-            await page.wait_for_timeout(1000)
+            await page.wait_for_timeout(500)
+            # 工單來源：Email進線
+            await page.locator("label:has-text(\'Email 進線\')").click()
+            await page.wait_for_timeout(300)
+            # 進線方：供應商
+            await page.locator("label:has-text(\'供應商\')").click()
+            await page.wait_for_timeout(500)
             order_input = page.locator("input[placeholder=\'Please enter text\']").first
             await order_input.fill(resolved_order_id)
             await page.keyboard.press('Tab')
@@ -1320,7 +1332,13 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             await page.wait_for_timeout(2000)
 
             await page.locator("label:has-text('有訂單')").click()
-            await page.wait_for_timeout(1000)
+            await page.wait_for_timeout(500)
+            # 工單來源：Email進線
+            await page.locator("label:has-text('Email 進線')").click()
+            await page.wait_for_timeout(300)
+            # 進線方：供應商
+            await page.locator("label:has-text('供應商')").click()
+            await page.wait_for_timeout(500)
 
             order_input = page.locator("input[placeholder='Please enter text']").first
             await order_input.fill(resolved_order_id)
