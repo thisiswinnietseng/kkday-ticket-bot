@@ -515,26 +515,32 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             }""")
             await page.wait_for_timeout(500)
 
+            # 診斷：印出 工單分類 附近 HTML
+            diag = await page.evaluate("""() => {
+                const labels = Array.from(document.querySelectorAll('label'));
+                const lbl = labels.find(e => e.textContent.trim() === '工單分類');
+                if (!lbl) return 'label not found';
+                let el = lbl;
+                for (let i = 0; i < 5; i++) { el = el.parentElement; if (!el) break; }
+                return el ? el.innerHTML.replace(/\\s+/g, ' ').substring(0, 600) : 'parent not found';
+            }""")
+            push(f'[DEBUG] {diag[:300]}')
+            await page.screenshot(path='/tmp/be2_form_debug.png')
+
             # 選工單分類（全部用 JS，避免 get_by_text 30s timeout）
             if wantan_type == 'mituan':
                 push('選工單分類：訂單異動→供應商通知→改期...')
             else:
                 push('選工單分類：訂單異動→額滿→挽單...')
             await page.evaluate("""() => {
-                const labels = Array.from(document.querySelectorAll('label, span, div'));
-                const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
-                if (lbl) {
-                    let el = lbl;
-                    for (let i = 0; i < 6; i++) {
-                        el = el.parentElement;
-                        if (!el) break;
-                        const sels = ['input.k-cascader__search-input','.k-cascader__trigger','.k-select__trigger','.k-input__inner'];
-                        for (const s of sels) {
-                            const inp = el.querySelector(s);
-                            if (inp && inp.offsetParent !== null) { inp.click(); return; }
-                        }
-                    }
-                }
+                const lbl = Array.from(document.querySelectorAll('label')).find(e => e.textContent.trim() === '工單分類');
+                if (!lbl) return;
+                const wrapper = lbl.closest('.k-form-field-wrapper') || lbl.closest('.k-component') || lbl.parentElement;
+                if (!wrapper) return;
+                const inp = wrapper.querySelector('input.k-cascader__search-input');
+                if (inp) { inp.click(); return; }
+                const trigger = wrapper.querySelector('.k-select__trigger, .k-cascader__trigger, .k-input__inner');
+                if (trigger) trigger.click();
             }""")
             # 等 L1 訂單異動出現
             try:
@@ -1011,20 +1017,14 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             # 選工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
             push('選工單分類：供應商自理訊息→供應商通知→轉達行前注意事項...')
             await page.evaluate("""() => {
-                const labels = Array.from(document.querySelectorAll('label, span, div'));
-                const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
-                if (lbl) {
-                    let el = lbl;
-                    for (let i = 0; i < 6; i++) {
-                        el = el.parentElement;
-                        if (!el) break;
-                        const sels = ['input.k-cascader__search-input','.k-cascader__trigger','.k-select__trigger','.k-input__inner'];
-                        for (const s of sels) {
-                            const inp = el.querySelector(s);
-                            if (inp && inp.offsetParent !== null) { inp.click(); return; }
-                        }
-                    }
-                }
+                const lbl = Array.from(document.querySelectorAll('label')).find(e => e.textContent.trim() === '工單分類');
+                if (!lbl) return;
+                const wrapper = lbl.closest('.k-form-field-wrapper') || lbl.closest('.k-component') || lbl.parentElement;
+                if (!wrapper) return;
+                const inp = wrapper.querySelector('input.k-cascader__search-input');
+                if (inp) { inp.click(); return; }
+                const trigger = wrapper.querySelector('.k-select__trigger, .k-cascader__trigger, .k-input__inner');
+                if (trigger) trigger.click();
             }""")
             # 等 L1 供應商自理訊息出現
             try:
@@ -1404,20 +1404,14 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             # 點開工單分類 cascader（先試 Playwright locator，失敗再 JS）
             push('開啟工單分類下拉...')
             await page.evaluate("""() => {
-                const labels = Array.from(document.querySelectorAll('label, span, div'));
-                const lbl = labels.find(e => e.textContent.trim() === '工單分類' && e.offsetParent !== null);
-                if (lbl) {
-                    let el = lbl;
-                    for (let i = 0; i < 8; i++) {
-                        el = el.parentElement;
-                        if (!el) break;
-                        const sels = ['input.k-cascader__search-input','.k-cascader__trigger','.k-select__trigger','.k-input__inner'];
-                        for (const s of sels) {
-                            const inp = el.querySelector(s);
-                            if (inp && inp.offsetParent !== null) { inp.click(); return; }
-                        }
-                    }
-                }
+                const lbl = Array.from(document.querySelectorAll('label')).find(e => e.textContent.trim() === '工單分類');
+                if (!lbl) return;
+                const wrapper = lbl.closest('.k-form-field-wrapper') || lbl.closest('.k-component') || lbl.parentElement;
+                if (!wrapper) return;
+                const inp = wrapper.querySelector('input.k-cascader__search-input');
+                if (inp) { inp.click(); return; }
+                const trigger = wrapper.querySelector('.k-select__trigger, .k-cascader__trigger, .k-input__inner');
+                if (trigger) trigger.click();
             }""")
             push('等待 L1 選項出現...')
             # 等 L1 選項出現再點
