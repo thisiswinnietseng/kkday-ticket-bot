@@ -485,13 +485,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
 
             # 選「有訂單」radio button
             await page.locator("label:has-text('有訂單')").click()
-            await page.wait_for_timeout(500)
-            # 工單來源：Email進線
-            await page.locator("label:has-text('Email 進線')").click()
-            await page.wait_for_timeout(300)
-            # 進線方：供應商
-            await page.locator("label:has-text('供應商')").click()
-            await page.wait_for_timeout(500)
+            await page.wait_for_timeout(1000)
 
             # 填訂單編號
             order_input = page.locator("input[placeholder='Please enter text']").first
@@ -506,6 +500,20 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 )
             except:
                 await page.wait_for_timeout(2000)
+
+            # 訂單資料載入後再選工單來源＋進線方（Tab 會重置這兩欄）
+            await page.evaluate("""() => {
+                const labels = Array.from(document.querySelectorAll('label'));
+                const email = labels.find(l => l.textContent.trim() === 'Email 進線');
+                if (email) email.click();
+            }""")
+            await page.wait_for_timeout(300)
+            await page.evaluate("""() => {
+                const labels = Array.from(document.querySelectorAll('label'));
+                const supplier = labels.find(l => l.textContent.trim() === '供應商');
+                if (supplier) supplier.click();
+            }""")
+            await page.wait_for_timeout(500)
 
             # 選工單分類（全部用 JS，避免 get_by_text 30s timeout）
             if wantan_type == 'mituan':
@@ -969,13 +977,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             await page.click("button:has-text(\'新增工單\')")
             await page.wait_for_timeout(2000)
             await page.locator("label:has-text(\'有訂單\')").click()
-            await page.wait_for_timeout(500)
-            # 工單來源：Email進線
-            await page.locator("label:has-text(\'Email 進線\')").click()
-            await page.wait_for_timeout(300)
-            # 進線方：供應商
-            await page.locator("label:has-text(\'供應商\')").click()
-            await page.wait_for_timeout(500)
+            await page.wait_for_timeout(1000)
             order_input = page.locator("input[placeholder=\'Please enter text\']").first
             await order_input.fill(resolved_order_id)
             await page.keyboard.press('Tab')
@@ -988,6 +990,20 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
                 )
             except:
                 await page.wait_for_timeout(2000)
+
+            # 訂單資料載入後再選工單來源＋進線方（Tab 會重置這兩欄）
+            await page.evaluate("""() => {
+                const labels = Array.from(document.querySelectorAll('label'));
+                const email = labels.find(l => l.textContent.trim() === 'Email 進線');
+                if (email) email.click();
+            }""")
+            await page.wait_for_timeout(300)
+            await page.evaluate("""() => {
+                const labels = Array.from(document.querySelectorAll('label'));
+                const supplier = labels.find(l => l.textContent.trim() === '供應商');
+                if (supplier) supplier.click();
+            }""")
+            await page.wait_for_timeout(500)
 
             # 選工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
             push('選工單分類：供應商自理訊息→供應商通知→轉達行前注意事項...')
@@ -1346,18 +1362,34 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             await page.wait_for_timeout(2000)
 
             await page.locator("label:has-text('有訂單')").click()
-            await page.wait_for_timeout(500)
-            # 工單來源：Email進線
-            await page.locator("label:has-text('Email 進線')").click()
-            await page.wait_for_timeout(300)
-            # 進線方：供應商
-            await page.locator("label:has-text('供應商')").click()
-            await page.wait_for_timeout(500)
+            await page.wait_for_timeout(1000)
 
             order_input = page.locator("input[placeholder='Please enter text']").first
             await order_input.fill(resolved_order_id)
             await page.keyboard.press('Tab')
             await page.wait_for_timeout(1000)
+            # 等 BE2 載入訂單資料
+            try:
+                await page.wait_for_function(
+                    "() => { const inputs = document.querySelectorAll(\"input[placeholder='Please enter text']\"); return inputs.length > 1 && inputs[1]?.value?.trim() !== ''; }",
+                    timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(2000)
+
+            # 訂單資料載入後再選工單來源＋進線方（Tab 會重置這兩欄）
+            await page.evaluate("""() => {
+                const labels = Array.from(document.querySelectorAll('label'));
+                const email = labels.find(l => l.textContent.trim() === 'Email 進線');
+                if (email) email.click();
+            }""")
+            await page.wait_for_timeout(300)
+            await page.evaluate("""() => {
+                const labels = Array.from(document.querySelectorAll('label'));
+                const supplier = labels.find(l => l.textContent.trim() === '供應商');
+                if (supplier) supplier.click();
+            }""")
+            await page.wait_for_timeout(500)
 
             # ── 選工單分類（全部用 JS，避免 get_by_text 30s timeout）─────
             push(f'選工單分類：{cat_l1}→{cat_l2}→{cat_l3}...')
