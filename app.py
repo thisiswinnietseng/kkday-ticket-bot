@@ -387,7 +387,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -883,7 +883,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -1253,7 +1253,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -1361,20 +1361,27 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
 
             # ── 選工單分類（全部用 JS，避免 get_by_text 30s timeout）─────
             push(f'選工單分類：{cat_l1}→{cat_l2}→{cat_l3}...')
+            await page.wait_for_timeout(500)
 
-            await page.evaluate("""() => {
-                const labels = Array.from(document.querySelectorAll('label, span, div'));
-                const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
-                if (lbl) {
-                    let el = lbl;
-                    for (let i = 0; i < 6; i++) {
-                        el = el.parentElement;
-                        if (!el) break;
-                        const inp = el.querySelector('input.k-cascader__search-input');
-                        if (inp && inp.offsetParent !== null) { inp.click(); return; }
+            # 點開工單分類 cascader（先試 Playwright locator，失敗再 JS）
+            push('開啟工單分類下拉...')
+            try:
+                await page.locator('input.k-cascader__search-input').first.click(timeout=3000)
+            except:
+                await page.evaluate("""() => {
+                    const labels = Array.from(document.querySelectorAll('label, span, div'));
+                    const lbl = labels.find(e => e.textContent.includes('工單分類') && e.offsetParent !== null);
+                    if (lbl) {
+                        let el = lbl;
+                        for (let i = 0; i < 6; i++) {
+                            el = el.parentElement;
+                            if (!el) break;
+                            const inp = el.querySelector('input.k-cascader__search-input');
+                            if (inp && inp.offsetParent !== null) { inp.click(); return; }
+                        }
                     }
-                }
-            }""")
+                }""")
+            push('等待 L1 選項出現...')
             # 等 L1 選項出現再點
             try:
                 await page.wait_for_function(
@@ -2058,4 +2065,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 0)) or find_free_port()
     with open('.port', 'w') as f:
         f.write(str(port))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=True)
