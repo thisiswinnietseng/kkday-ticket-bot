@@ -1203,6 +1203,11 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             await page.wait_for_timeout(1500)
             await page.get_by_role("button", name="關閉", exact=True).click()
             await page.wait_for_timeout(1000)
+            # 填入工單小結（BE2 必填欄位）
+            summary_field = page.locator("textarea[placeholder='Please enter text'], textarea").first
+            if await summary_field.count() > 0:
+                await summary_field.fill('done')
+                await page.wait_for_timeout(300)
             if await page.locator("button:has-text('確認')").count() > 0:
                 await page.locator("button:has-text('確認')").first.click()
                 await page.wait_for_timeout(1000)
