@@ -2078,7 +2078,7 @@ def queue_status():
 
 if __name__ == '__main__':
     import socket
-    def find_free_port(start=5001):
+    def find_free_port(start=7001):
         for p in range(start, start + 20):
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

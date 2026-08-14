@@ -20,8 +20,8 @@ if [ -d ".git" ]; then
   echo ""
 fi
 
-# 停掉舊的伺服器（清除 5001–5020 範圍內舊的 process）
-for p in $(seq 5001 5020); do
+# 停掉舊的伺服器（清除 7001–7020 範圍內舊的 process）
+for p in $(seq 7001 7020); do
   lsof -ti:$p | xargs kill -9 2>/dev/null
 done
 
