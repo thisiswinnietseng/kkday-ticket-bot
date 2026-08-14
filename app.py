@@ -529,13 +529,12 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 push('選工單分類：訂單異動→供應商通知→改期...')
             else:
                 push('選工單分類：訂單異動→額滿→挽單...')
-            await page.evaluate("""() => {
-                // label 和 cascader 是兄弟節點，不能用 closest()，直接找唯一的 cascader input
-                const inp = document.querySelector('input.k-cascader__search-input');
-                if (inp) { inp.click(); return; }
-                const trigger = document.querySelector('div[name="cascader"] .k-select__trigger-arrow, div[name="cascader"]');
-                if (trigger) trigger.click();
-            }""")
+            # Playwright native click — 模擬真實滑鼠，Vue 才會響應（JS .click() 是合成事件，Vue 不理）
+            try:
+                await page.wait_for_selector('div[name="cascader"]', state='visible', timeout=5000)
+                await page.click('div[name="cascader"]')
+            except:
+                await page.click('input.k-cascader__search-input')
             # 等 L1 訂單異動出現
             try:
                 await page.wait_for_function(
@@ -1010,13 +1009,12 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
 
             # 選工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
             push('選工單分類：供應商自理訊息→供應商通知→轉達行前注意事項...')
-            await page.evaluate("""() => {
-                // label 和 cascader 是兄弟節點，不能用 closest()，直接找唯一的 cascader input
-                const inp = document.querySelector('input.k-cascader__search-input');
-                if (inp) { inp.click(); return; }
-                const trigger = document.querySelector('div[name="cascader"] .k-select__trigger-arrow, div[name="cascader"]');
-                if (trigger) trigger.click();
-            }""")
+            # Playwright native click — 模擬真實滑鼠，Vue 才會響應（JS .click() 是合成事件，Vue 不理）
+            try:
+                await page.wait_for_selector('div[name="cascader"]', state='visible', timeout=5000)
+                await page.click('div[name="cascader"]')
+            except:
+                await page.click('input.k-cascader__search-input')
             # 等 L1 供應商自理訊息出現
             try:
                 await page.wait_for_function(
@@ -1394,13 +1392,12 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
 
             # 點開工單分類 cascader（先試 Playwright locator，失敗再 JS）
             push('開啟工單分類下拉...')
-            await page.evaluate("""() => {
-                // label 和 cascader 是兄弟節點，不能用 closest()，直接找唯一的 cascader input
-                const inp = document.querySelector('input.k-cascader__search-input');
-                if (inp) { inp.click(); return; }
-                const trigger = document.querySelector('div[name="cascader"] .k-select__trigger-arrow, div[name="cascader"]');
-                if (trigger) trigger.click();
-            }""")
+            # Playwright native click — 模擬真實滑鼠，Vue 才會響應（JS .click() 是合成事件，Vue 不理）
+            try:
+                await page.wait_for_selector('div[name="cascader"]', state='visible', timeout=5000)
+                await page.click('div[name="cascader"]')
+            except:
+                await page.click('input.k-cascader__search-input')
             push('等待 L1 選項出現...')
             # 等 L1 選項出現再點
             try:
