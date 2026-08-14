@@ -1123,8 +1123,11 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='networkidle', timeout=30000)
             await page.wait_for_timeout(1500)
             await page.locator(f"text={ticket_id}").first.click()
-            await page.wait_for_timeout(1500)
-            await page.click("button:has-text(\'開始處理\')")
+            await page.wait_for_load_state('networkidle', timeout=15000)
+            await page.wait_for_timeout(1000)
+            btn_process = page.locator("button:has-text('開始處理')").first
+            await btn_process.scroll_into_view_if_needed()
+            await btn_process.click(timeout=15000)
             await page.wait_for_timeout(800)
             await page.locator("button:has-text(\'確認\')").first.click()
             await page.wait_for_timeout(1000)
