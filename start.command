@@ -21,9 +21,8 @@ if [ -d ".git" ]; then
 fi
 
 # 停掉舊的伺服器
-for p in 7777; do
-  lsof -ti:$p | xargs kill -9 2>/dev/null
-done
+lsof -ti:7777 | xargs kill -9 2>/dev/null
+sleep 2
 
 # 啟動伺服器
 rm -f .port
