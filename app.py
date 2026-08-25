@@ -1427,14 +1427,14 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             # 等 L2 出現
             try:
                 await page.wait_for_function(
-                    "(l2) => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === l2 && e.offsetParent !== null)",
+                    "(l2) => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim().includes(l2) && e.offsetParent !== null)",
                     cat_l2, timeout=8000
                 )
             except:
                 await page.wait_for_timeout(1000)
             found_l2 = await page.evaluate("""(l2) => {
                 const els = Array.from(document.querySelectorAll('li, div, span'));
-                const el = els.find(e => e.textContent.trim() === l2 && e.offsetParent !== null);
+                const el = els.find(e => e.textContent.trim().includes(l2) && e.offsetParent !== null);
                 if (el) { el.click(); return true; }
                 return false;
             }""", cat_l2)
@@ -1444,14 +1444,14 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             # 等 L3 出現
             try:
                 await page.wait_for_function(
-                    "(l3) => Array.from(document.querySelectorAll('div.text-ellipsis, li, span')).some(e => e.textContent.trim() === l3 && e.offsetParent !== null)",
+                    "(l3) => Array.from(document.querySelectorAll('div.text-ellipsis, li, span')).some(e => e.textContent.trim().includes(l3) && e.offsetParent !== null)",
                     cat_l3, timeout=8000
                 )
             except:
                 await page.wait_for_timeout(1000)
             found_l3 = await page.evaluate("""(l3) => {
                 const els = Array.from(document.querySelectorAll('div.text-ellipsis, li, span'));
-                const el = els.find(e => e.textContent.trim() === l3 && e.offsetParent !== null);
+                const el = els.find(e => e.textContent.trim().includes(l3) && e.offsetParent !== null);
                 if (el) { el.click(); return true; }
                 return false;
             }""", cat_l3)
