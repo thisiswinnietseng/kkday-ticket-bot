@@ -1424,20 +1424,21 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             if not found_l1:
                 raise Exception(f'找不到「{cat_l1}」分類選項，請確認下拉選單已展開')
             push(f'{cat_l1} ✓')
-            # 等 L2 出現
+            # 等 L2 出現（只搜 li，用 / 前的關鍵字）
+            l2_key = cat_l2.split(' / ')[0].strip()
             try:
                 await page.wait_for_function(
-                    "(l2) => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim().includes(l2) && e.offsetParent !== null)",
-                    cat_l2, timeout=8000
+                    "(key) => Array.from(document.querySelectorAll('li')).some(e => e.textContent.trim().includes(key) && e.offsetParent !== null)",
+                    l2_key, timeout=8000
                 )
             except:
                 await page.wait_for_timeout(1000)
-            found_l2 = await page.evaluate("""(l2) => {
-                const els = Array.from(document.querySelectorAll('li, div, span'));
-                const el = els.find(e => e.textContent.trim().includes(l2) && e.offsetParent !== null);
+            found_l2 = await page.evaluate("""(key) => {
+                const els = Array.from(document.querySelectorAll('li'));
+                const el = els.find(e => e.textContent.trim().includes(key) && e.offsetParent !== null);
                 if (el) { el.click(); return true; }
                 return false;
-            }""", cat_l2)
+            }""", l2_key)
             if not found_l2:
                 raise Exception(f'找不到「{cat_l2}」分類選項，請確認 {cat_l1} 已選擇')
             push(f'{cat_l2} ✓')
