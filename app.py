@@ -387,7 +387,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -893,7 +893,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -1272,7 +1272,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
