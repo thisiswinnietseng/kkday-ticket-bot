@@ -394,7 +394,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
         try:
             # ── 登入 ──────────────────────────────────────────
             push('登入 be2...')
-            await page.goto('https://be2.kkday.com/login', wait_until='networkidle', timeout=30000)
+            await page.goto('https://be2.kkday.com/login', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(1000)
 
             # 點 Log In 按鈕，等 popup
@@ -419,7 +419,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 await submit.first.click()
                 await popup.wait_for_load_state('networkidle')
                 await page.wait_for_timeout(6000)
-                await page.goto('https://be2.kkday.com/v3/crm/dashboard', wait_until='networkidle', timeout=30000)
+                await page.goto('https://be2.kkday.com/v3/crm/dashboard', wait_until='domcontentloaded', timeout=60000)
                 await page.wait_for_timeout(2000)
                 if 'login' in page.url:
                     raise Exception('登入失敗，請確認帳號密碼')
@@ -436,7 +436,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             # ── 供應商編號 → 查 KKday 訂單編號 ───────────────
             if supplier_order_id and not resolved_order_id:
                 push(f'透過供應商編號 {supplier_order_id} 查詢訂單...')
-                await page.goto('https://be2.kkday.com/order/order_list', wait_until='networkidle', timeout=30000)
+                await page.goto('https://be2.kkday.com/order/order_list', wait_until='domcontentloaded', timeout=60000)
                 await page.wait_for_timeout(1500)
                 supplier_input = page.locator("input[placeholder*='供應商訂單編號']")
                 if await supplier_input.count() == 0:
@@ -475,7 +475,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
 
             # ── 前往客服操作台，新增工單 ───────────────────────
             push('前往客服操作台...')
-            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='networkidle', timeout=30000)
+            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(1500)
 
             push('點擊新增工單...')
@@ -836,7 +836,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
             note = f'挽單自動化\n#{ticket_id}\n最晚處理\n{tdl}\n後拋截止\n{fdl}'
             await page.goto(
                 f'https://be2.kkday.com/order/order_view/{resolved_order_id}',
-                wait_until='networkidle', timeout=30000
+                wait_until='domcontentloaded', timeout=60000
             )
             await page.wait_for_timeout(2000)
             await page.locator("a[role='tab']:has-text('訂單備註')").first.click()
@@ -900,7 +900,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
         try:
             # ── 登入 ──────────────────────────────────────────
             push('登入 be2...')
-            await page.goto('https://be2.kkday.com/login', wait_until='networkidle', timeout=30000)
+            await page.goto('https://be2.kkday.com/login', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(1000)
             if await page.locator("text=Log In").count() > 0:
                 async with ctx.expect_page() as popup_info:
@@ -923,7 +923,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
                 await submit.first.click()
                 await popup.wait_for_load_state('networkidle')
                 await page.wait_for_timeout(6000)
-                await page.goto('https://be2.kkday.com/v3/crm/dashboard', wait_until='networkidle', timeout=30000)
+                await page.goto('https://be2.kkday.com/v3/crm/dashboard', wait_until='domcontentloaded', timeout=60000)
                 await page.wait_for_timeout(2000)
                 if 'login' in page.url:
                     raise Exception('登入失敗，請確認帳號密碼')
@@ -934,7 +934,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             # ── 供應商編號 → 查 KKday 訂單編號 ───────────────
             if supplier_order_id and not resolved_order_id:
                 push(f'透過供應商編號 {supplier_order_id} 查詢訂單...')
-                await page.goto('https://be2.kkday.com/order/order_list', wait_until='networkidle', timeout=30000)
+                await page.goto('https://be2.kkday.com/order/order_list', wait_until='domcontentloaded', timeout=60000)
                 await page.wait_for_timeout(1500)
                 supplier_input = page.locator("input[placeholder*=\'供應商訂單編號\']")
                 if await supplier_input.count() == 0:
@@ -973,7 +973,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
 
             # ── 前往客服操作台，新增工單 ───────────────────────
             push('前往客服操作台...')
-            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='networkidle', timeout=30000)
+            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(1500)
             push('點擊新增工單...')
             await page.click("button:has-text(\'新增工單\')")
@@ -1120,7 +1120,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
 
             # ── 開始處理 ───────────────────────────────────────
             push('點進工單 → 開始處理...')
-            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='networkidle', timeout=30000)
+            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(1500)
             await page.locator(f"text={ticket_id}").first.click()
             await page.wait_for_load_state('networkidle', timeout=15000)
@@ -1197,7 +1197,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
 
             # ── 關閉工單 ───────────────────────────────────────
             push('關閉工單...')
-            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='networkidle', timeout=30000)
+            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(1500)
             await page.locator(f"text={ticket_id}").first.click()
             await page.wait_for_timeout(1500)
@@ -1216,7 +1216,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             # ── 訂單備註 ───────────────────────────────────────
             push('填入訂單備註...')
             note = f'對客通知自動化\n#{ticket_id}\n最晚處理\n{tdl}'
-            await page.goto(f'https://be2.kkday.com/order/order_view/{resolved_order_id}', wait_until='networkidle', timeout=30000)
+            await page.goto(f'https://be2.kkday.com/order/order_view/{resolved_order_id}', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(2000)
             await page.locator("a[role='tab']:has-text('訂單備註')").first.click()
             await page.wait_for_timeout(2000)
@@ -1279,7 +1279,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
         try:
             # ── 登入 ──────────────────────────────────────────
             push('登入 be2...')
-            await page.goto('https://be2.kkday.com/login', wait_until='networkidle', timeout=30000)
+            await page.goto('https://be2.kkday.com/login', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(1000)
 
             if await page.locator("text=Log In").count() > 0:
@@ -1303,7 +1303,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
                 await submit.first.click()
                 await popup.wait_for_load_state('networkidle')
                 await page.wait_for_timeout(6000)
-                await page.goto('https://be2.kkday.com/v3/crm/dashboard', wait_until='networkidle', timeout=30000)
+                await page.goto('https://be2.kkday.com/v3/crm/dashboard', wait_until='domcontentloaded', timeout=60000)
                 await page.wait_for_timeout(2000)
                 if 'login' in page.url:
                     raise Exception('登入失敗，請確認帳號密碼')
@@ -1318,7 +1318,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             # ── 供應商編號 → 查 KKday 訂單編號 ───────────────
             if supplier_order_id and not resolved_order_id:
                 push(f'透過供應商編號 {supplier_order_id} 查詢訂單...')
-                await page.goto('https://be2.kkday.com/order/order_list', wait_until='networkidle', timeout=30000)
+                await page.goto('https://be2.kkday.com/order/order_list', wait_until='domcontentloaded', timeout=60000)
                 await page.wait_for_timeout(1500)
                 supplier_input = page.locator("input[placeholder*='供應商訂單編號']")
                 if await supplier_input.count() == 0:
@@ -1357,7 +1357,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
 
             # ── 前往客服操作台，新增工單 ───────────────────────
             push('前往客服操作台...')
-            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='networkidle', timeout=30000)
+            await page.goto('https://be2.kkday.com/v3/crm/dashboard?taskStatus=3', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(1500)
 
             push('點擊新增工單...')
@@ -1668,7 +1668,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             note = f'一般工單自動化\n#{ticket_id}\n分類：{cat_l1}>{cat_l2}>{cat_l3}\n最晚處理\n{tdl}\n後拋截止\n{fdl}'
             await page.goto(
                 f'https://be2.kkday.com/order/order_view/{resolved_order_id}',
-                wait_until='networkidle', timeout=30000
+                wait_until='domcontentloaded', timeout=60000
             )
             await page.wait_for_timeout(2000)
             await page.locator("a[role='tab']:has-text('訂單備註')").first.click()
