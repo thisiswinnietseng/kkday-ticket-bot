@@ -387,7 +387,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -529,20 +529,27 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 push('選工單分類：訂單異動→供應商通知→改期...')
             else:
                 push('選工單分類：訂單異動→額滿→挽單...')
-            # Playwright native click — 模擬真實滑鼠，Vue 才會響應（JS .click() 是合成事件，Vue 不理）
-            try:
-                await page.wait_for_selector('div[name="cascader"]', state='visible', timeout=5000)
-                await page.click('div[name="cascader"]')
-            except:
-                await page.click('input.k-cascader__search-input')
-            # 等 L1 訂單異動出現
-            try:
-                await page.wait_for_function(
-                    "() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '訂單異動' && e.offsetParent !== null)",
-                    timeout=8000
-                )
-            except:
-                await page.wait_for_timeout(1500)
+            # 開啟 cascader — 嘗試多次並驗證 dropdown 真的展開
+            cascader_opened = False
+            for _attempt in range(4):
+                try:
+                    await page.locator('div[name="cascader"] input.k-cascader__search-input').first.click()
+                except:
+                    try:
+                        await page.click('div[name="cascader"]')
+                    except:
+                        pass
+                try:
+                    await page.wait_for_function(
+                        "() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '訂單異動' && e.offsetParent !== null)",
+                        timeout=3000
+                    )
+                    cascader_opened = True
+                    break
+                except:
+                    await page.wait_for_timeout(800)
+            if not cascader_opened:
+                raise Exception('無法開啟工單分類下拉選單，請確認頁面已正確載入')
             # L1：訂單異動
             found_l1 = await page.evaluate("""() => {
                 const els = Array.from(document.querySelectorAll('li, div, span'));
@@ -623,19 +630,33 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 push('挽單 ✓')
             await page.wait_for_timeout(4000)
 
-            # 最晚處理時間 - 點燈泡自動帶入
+            # 最晚處理時間 - 點燈泡自動帶入（等 cascader 值寫入 DOM 後再點）
             push('點擊最晚處理時間燈泡...')
+            # 等 cascader 顯示已選值才算真正 register
+            try:
+                await page.wait_for_function(
+                    "() => { const t = document.querySelector('div[name=\"cascader\"] input, div[name=\"cascader\"] .k-cascader__tag, div[name=\"cascader\"] .k-tag'); return t && t.textContent && t.textContent.trim().length > 0; }",
+                    timeout=8000
+                )
+            except:
+                await page.wait_for_timeout(2000)
             await page.locator("button[class*='k-btn--orange']").first.click()
             try:
                 await page.wait_for_function("() => !!document.querySelector(\"input[placeholder='Select date']\")?.value", timeout=10000)
             except:
                 push('燈泡未帶入，重試一次...')
-                await page.wait_for_timeout(1000)
+                await page.wait_for_timeout(2000)
                 await page.locator("button[class*='k-btn--orange']").first.click()
                 try:
                     await page.wait_for_function("() => !!document.querySelector(\"input[placeholder='Select date']\")?.value", timeout=10000)
                 except:
-                    pass
+                    push('燈泡未帶入，重試第二次...')
+                    await page.wait_for_timeout(3000)
+                    await page.locator("button[class*='k-btn--orange']").first.click()
+                    try:
+                        await page.wait_for_function("() => !!document.querySelector(\"input[placeholder='Select date']\")?.value", timeout=10000)
+                    except:
+                        pass
             tdl = await page.locator("input[placeholder='Select date']").first.input_value()
             if not tdl:
                 raise Exception('最晚處理時間燈泡點擊後仍為空，請確認工單分類與商品類型已選擇')
@@ -893,7 +914,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -1009,20 +1030,26 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
 
             # 選工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
             push('選工單分類：供應商自理訊息→供應商通知→轉達行前注意事項...')
-            # Playwright native click — 模擬真實滑鼠，Vue 才會響應（JS .click() 是合成事件，Vue 不理）
-            try:
-                await page.wait_for_selector('div[name="cascader"]', state='visible', timeout=5000)
-                await page.click('div[name="cascader"]')
-            except:
-                await page.click('input.k-cascader__search-input')
-            # 等 L1 供應商自理訊息出現
-            try:
-                await page.wait_for_function(
-                    "() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '供應商自理訊息' && e.offsetParent !== null)",
-                    timeout=8000
-                )
-            except:
-                await page.wait_for_timeout(1500)
+            cascader_opened = False
+            for _attempt in range(4):
+                try:
+                    await page.locator('div[name="cascader"] input.k-cascader__search-input').first.click()
+                except:
+                    try:
+                        await page.click('div[name="cascader"]')
+                    except:
+                        pass
+                try:
+                    await page.wait_for_function(
+                        "() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '供應商自理訊息' && e.offsetParent !== null)",
+                        timeout=3000
+                    )
+                    cascader_opened = True
+                    break
+                except:
+                    await page.wait_for_timeout(800)
+            if not cascader_opened:
+                raise Exception('無法開啟工單分類下拉選單，請確認頁面已正確載入')
             found_l1 = await page.evaluate("""() => {
                 const els = Array.from(document.querySelectorAll('li, div, span'));
                 const el = els.find(e => e.textContent.trim() === '供應商自理訊息' && e.offsetParent !== null);
@@ -1272,7 +1299,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(headless=False)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -1398,23 +1425,27 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             push(f'選工單分類：{cat_l1}→{cat_l2}→{cat_l3}...')
             await page.wait_for_timeout(500)
 
-            # 點開工單分類 cascader（先試 Playwright locator，失敗再 JS）
             push('開啟工單分類下拉...')
-            # Playwright native click — 模擬真實滑鼠，Vue 才會響應（JS .click() 是合成事件，Vue 不理）
-            try:
-                await page.wait_for_selector('div[name="cascader"]', state='visible', timeout=5000)
-                await page.click('div[name="cascader"]')
-            except:
-                await page.click('input.k-cascader__search-input')
-            push('等待 L1 選項出現...')
-            # 等 L1 選項出現再點
-            try:
-                await page.wait_for_function(
-                    "(l1) => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === l1 && e.offsetParent !== null)",
-                    cat_l1, timeout=8000
-                )
-            except:
-                await page.wait_for_timeout(1500)
+            cascader_opened = False
+            for _attempt in range(4):
+                try:
+                    await page.locator('div[name="cascader"] input.k-cascader__search-input').first.click()
+                except:
+                    try:
+                        await page.click('div[name="cascader"]')
+                    except:
+                        pass
+                try:
+                    await page.wait_for_function(
+                        "(l1) => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === l1 && e.offsetParent !== null)",
+                        cat_l1, timeout=3000
+                    )
+                    cascader_opened = True
+                    break
+                except:
+                    await page.wait_for_timeout(800)
+            if not cascader_opened:
+                raise Exception('無法開啟工單分類下拉選單，請確認頁面已正確載入')
             found_l1 = await page.evaluate("""(l1) => {
                 const els = Array.from(document.querySelectorAll('li, div, span'));
                 const el = els.find(e => e.textContent.trim() === l1 && e.offsetParent !== null);
