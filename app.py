@@ -447,7 +447,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 else:
                     raise Exception('找不到供應商訂單編號欄位')
                 await page.click("button:has-text('查詢')")
-                await page.wait_for_timeout(2500)
+                await page.wait_for_timeout(4000)
                 rows = page.locator("table tbody tr")
                 row_count = await rows.count()
                 if row_count > 0:
@@ -621,7 +621,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
                 if not found_l3:
                     raise Exception('找不到「挽單」選項，請確認工單分類下拉是否正確展開')
                 push('挽單 ✓')
-            await page.wait_for_timeout(2500)
+            await page.wait_for_timeout(4000)
 
             # 最晚處理時間 - 點燈泡自動帶入
             push('點擊最晚處理時間燈泡...')
@@ -945,7 +945,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
                 else:
                     raise Exception('找不到供應商訂單編號欄位')
                 await page.click("button:has-text(\'查詢\')")
-                await page.wait_for_timeout(2500)
+                await page.wait_for_timeout(4000)
                 rows = page.locator("table tbody tr")
                 row_count = await rows.count()
                 if row_count > 0:
@@ -1066,7 +1066,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             if not found_l3:
                 raise Exception('找不到「轉達行前注意事項」選項，請確認工單分類下拉是否正確展開')
             push('轉達行前注意事項 ✓')
-            await page.wait_for_timeout(2500)
+            await page.wait_for_timeout(4000)
 
             # 最晚處理時間 - 點燈泡自動帶入
             push('點擊最晚處理時間燈泡...')
@@ -1329,7 +1329,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
                 else:
                     raise Exception('找不到供應商訂單編號欄位')
                 await page.click("button:has-text('查詢')")
-                await page.wait_for_timeout(2500)
+                await page.wait_for_timeout(4000)
                 rows = page.locator("table tbody tr")
                 row_count = await rows.count()
                 if row_count > 0:
@@ -1458,7 +1458,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             }""", cat_l3)
             if not found_l3:
                 raise Exception(f'找不到「{cat_l3}」選項，請確認工單分類下拉是否正確展開')
-            await page.wait_for_timeout(2500)
+            await page.wait_for_timeout(4000)
             push(f'工單分類已選：{cat_l1}→{cat_l2}→{cat_l3}', 'ok')
 
             # ── 最晚處理時間燈泡 ───────────────────────────────
