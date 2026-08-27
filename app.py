@@ -387,7 +387,7 @@ async def run_flow(order_id, progress, username, password, follow_type='page', o
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=False)
+        browser = await pw.chromium.launch(headless=True)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -914,7 +914,7 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=False)
+        browser = await pw.chromium.launch(headless=True)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -1030,6 +1030,10 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
 
             # 選工單分類：供應商自理訊息 → 供應商通知 → 轉達行前注意事項
             push('選工單分類：供應商自理訊息→供應商通知→轉達行前注意事項...')
+            try:
+                await page.wait_for_selector('input.k-cascader__search-input', state='visible', timeout=8000)
+            except:
+                pass
             cascader_opened = False
             for _attempt in range(4):
                 try:
@@ -1299,7 +1303,7 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
     resolved_order_id = order_id.strip().upper() if order_id else ''
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=False)
+        browser = await pw.chromium.launch(headless=True)
         ctx = await browser.new_context()
         page = await ctx.new_page()
 
@@ -1426,6 +1430,10 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             await page.wait_for_timeout(500)
 
             push('開啟工單分類下拉...')
+            try:
+                await page.wait_for_selector('input.k-cascader__search-input', state='visible', timeout=8000)
+            except:
+                pass
             cascader_opened = False
             for _attempt in range(4):
                 try:
