@@ -1435,19 +1435,10 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             await page.wait_for_timeout(500)
 
             push('開啟工單分類下拉...')
-            try:
-                await page.wait_for_selector('input.k-cascader__search-input', timeout=8000)
-            except:
-                pass
-            # 捲到 cascader 位置再點
-            try:
-                await page.locator('input.k-cascader__search-input').first.scroll_into_view_if_needed()
-            except:
-                pass
             cascader_opened = False
             for _attempt in range(4):
                 try:
-                    await page.locator('input.k-cascader__search-input').first.click()
+                    await page.locator('div[name="cascader"] input.k-cascader__search-input').first.click()
                 except:
                     try:
                         await page.click('div[name="cascader"]')
@@ -1455,8 +1446,8 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
                         pass
                 try:
                     await page.wait_for_function(
-                        "(l1) => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === l1 && e.offsetParent !== null)",
-                        cat_l1, timeout=3000
+                        f"() => Array.from(document.querySelectorAll('li, div, span')).some(e => e.textContent.trim() === '{cat_l1}' && e.offsetParent !== null)",
+                        timeout=3000
                     )
                     cascader_opened = True
                     break
@@ -1491,20 +1482,22 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
             if not found_l2:
                 raise Exception(f'找不到「{cat_l2}」分類選項，請確認 {cat_l1} 已選擇')
             push(f'{cat_l2} ✓')
-            # 等 L3 出現
+            # 等 L3 出現（忽略空格差異比對）
+            l3_norm = cat_l3.replace(' ', '')
             try:
                 await page.wait_for_function(
-                    "(l3) => Array.from(document.querySelectorAll('div.text-ellipsis, li, span')).some(e => e.textContent.trim().includes(l3) && e.offsetParent !== null)",
-                    cat_l3, timeout=8000
+                    "(l3n) => { const n=s=>s.replace(/\\s/g,''); return Array.from(document.querySelectorAll('div.text-ellipsis, li, span')).some(e => n(e.textContent.trim()).includes(l3n) && e.offsetParent !== null); }",
+                    l3_norm, timeout=8000
                 )
             except:
                 await page.wait_for_timeout(1000)
-            found_l3 = await page.evaluate("""(l3) => {
+            found_l3 = await page.evaluate("""(l3n) => {
+                const n = s => s.replace(/\\s/g, '');
                 const els = Array.from(document.querySelectorAll('div.text-ellipsis, li, span'));
-                const el = els.find(e => e.textContent.trim().includes(l3) && e.offsetParent !== null);
+                const el = els.find(e => n(e.textContent.trim()).includes(l3n) && e.offsetParent !== null);
                 if (el) { el.click(); return true; }
                 return false;
-            }""", cat_l3)
+            }""", l3_norm)
             if not found_l3:
                 raise Exception(f'找不到「{cat_l3}」選項，請確認工單分類下拉是否正確展開')
             await page.wait_for_timeout(4000)
