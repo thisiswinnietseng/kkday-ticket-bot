@@ -1156,16 +1156,21 @@ async def run_notification_flow(order_id, supplier_order_id, notification_conten
             await page.locator(f"text={ticket_id}").first.click()
             await page.wait_for_load_state('networkidle', timeout=15000)
             await page.wait_for_timeout(1000)
-            btn_process = page.locator("button:has-text('開始處理')").first
-            await btn_process.scroll_into_view_if_needed()
-            await btn_process.click(timeout=15000)
-            await page.wait_for_timeout(800)
-            await page.locator("button:has-text(\'確認\')").first.click()
-            await page.wait_for_timeout(1000)
-            if await page.locator("button:has-text(\'確認\')").count() > 0:
-                await page.locator("button:has-text(\'確認\')").first.click()
-                await page.wait_for_timeout(1000)
-            push('狀態更新為處理中', 'ok')
+            try:
+                btn_process = page.locator("button:has-text('開始處理')").first
+                await btn_process.wait_for(state='visible', timeout=8000)
+                await btn_process.scroll_into_view_if_needed(timeout=5000)
+                await btn_process.click(timeout=10000)
+                await page.wait_for_timeout(800)
+                if await page.locator("button:has-text('確認')").count() > 0:
+                    await page.locator("button:has-text('確認')").first.click()
+                    await page.wait_for_timeout(1000)
+                if await page.locator("button:has-text('確認')").count() > 0:
+                    await page.locator("button:has-text('確認')").first.click()
+                    await page.wait_for_timeout(1000)
+                push('狀態更新為處理中', 'ok')
+            except:
+                push('（工單已在處理中或無需點開始處理，略過）')
             await page.wait_for_timeout(1500)
             # 關閉「操作成功」彈窗
             if await page.locator("button:has-text('確認')").count() > 0:
@@ -1431,13 +1436,18 @@ async def run_general_single(order_id, supplier_order_id, cat_l1, cat_l2, cat_l3
 
             push('開啟工單分類下拉...')
             try:
-                await page.wait_for_selector('input.k-cascader__search-input', state='visible', timeout=8000)
+                await page.wait_for_selector('input.k-cascader__search-input', timeout=8000)
+            except:
+                pass
+            # 捲到 cascader 位置再點
+            try:
+                await page.locator('input.k-cascader__search-input').first.scroll_into_view_if_needed()
             except:
                 pass
             cascader_opened = False
             for _attempt in range(4):
                 try:
-                    await page.locator('div[name="cascader"] input.k-cascader__search-input').first.click()
+                    await page.locator('input.k-cascader__search-input').first.click()
                 except:
                     try:
                         await page.click('div[name="cascader"]')
